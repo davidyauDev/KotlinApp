@@ -63,8 +63,19 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
-
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.google.play.services.location)
+
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+    implementation("com.google.mlkit:face-detection:16.1.5")
+
+
+
+
+
 
 
 
