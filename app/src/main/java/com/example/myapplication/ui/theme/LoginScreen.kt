@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.theme
 
-import android.util.Log
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,18 +28,13 @@ import com.example.myapplication.ui.theme.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewModel()) {
-    var email by remember { mutableStateOf("admin@example.com") }
-    var password by remember { mutableStateOf("12345678") }
-    var acceptTerms by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("admin@cechriza.net") }
+    var password by remember { mutableStateOf("password") }
     var rememberMe by remember { mutableStateOf(false) }
-
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
-    var termsError by remember { mutableStateOf<String?>(null) }
-    var showCamera by remember { mutableStateOf(false) }
 
     val loginState by viewModel.loginState.collectAsState()
-
     val focusManager = LocalFocusManager.current
 
     val logoBlue = Color(0xFF0051A8)
@@ -49,9 +43,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) onLoginSuccess()
     }
-
     Box(
-
         modifier = Modifier
             .fillMaxSize()
             .background(background)
@@ -66,9 +58,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
                 contentDescription = "Logo CECHRIZA",
                 modifier = Modifier.size(200.dp)
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -127,7 +117,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
                         valid = false
                     }
                     if (valid) {
-                        ///showCamera = true
                         viewModel.login(email, password)
                     }
                 },
@@ -138,6 +127,16 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
                 Text(if (loginState is LoginState.Loading) "Iniciando..." else "Iniciar Sesión")
             }
             Spacer(modifier = Modifier.height(12.dp))
+            val errorState = loginState as? LoginState.Error
+            errorState?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = it.message,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             Text(
                 text = "¿Olvidó la contraseña?",
                 modifier = Modifier.clickable { /* TODO */ },
@@ -145,11 +144,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
                 style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline)
             )
         }
-
-
     }
-
-
 }
 
 

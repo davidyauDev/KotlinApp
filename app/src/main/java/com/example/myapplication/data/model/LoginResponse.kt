@@ -1,7 +1,8 @@
 package com.example.myapplication.data.model
 
 data class LoginResponse(
-    val status: Int,
+    val status: String,
     val code: String,
-    val data: LoginData
+    val data: LoginData,
+    val message: String,
 )

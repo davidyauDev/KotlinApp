@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
+
 }
 
 android {
@@ -72,12 +74,9 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.0")
     implementation("com.google.mlkit:face-detection:16.1.5")
 
-
-
-
-
-
-
-
+    // ROOM
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 
 }

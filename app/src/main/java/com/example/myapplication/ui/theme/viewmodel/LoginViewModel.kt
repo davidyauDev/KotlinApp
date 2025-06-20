@@ -20,18 +20,21 @@ class LoginViewModel : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
-
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
             try {
-                Log.d("Test2",email)
                 val response = RetrofitInstance.api.login(LoginRequest(email, password))
-                Log.d("Response", response.toString())
-                val username = response.data.userData.name
-                val token = response.data.accessToken
-                Log.d("username",username)
-                _loginState.value = LoginState.Success(username)
+                Log.d("error2", response.toString())
+                if (response.status == "success") {
+                    Log.d("error2", response.toString())
+                    val username = response.data.user.name
+                    //val token = response.data.accessToken
+                    _loginState.value = LoginState.Success(username)
+                } else {
+                    _loginState.value = LoginState.Error("Credenciales incorrectas")
+                    Log.d("error", _loginState.value.toString())
+                }
             } catch (e: Exception) {
                 Log.e("LoginError", "Excepción: ${e.localizedMessage}", e)
                 _loginState.value = LoginState.Error("Login fallido: ${e.localizedMessage}")

@@ -34,7 +34,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-@androidx.camera.core.ExperimentalGetImage
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
@@ -49,7 +49,6 @@ fun HomeScreen() {
     val currentTime = remember { mutableStateOf("") }
     val currentDate = remember { mutableStateOf("") }
 
-    // Reloj y fecha actualizados en tiempo real
     LaunchedEffect(Unit) {
         while (true) {
             currentTime.value = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
