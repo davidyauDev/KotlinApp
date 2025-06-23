@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.theme
 
+import android.util.Log
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,9 +26,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.viewmodel.LoginState
 import com.example.myapplication.ui.theme.viewmodel.LoginViewModel
+import com.example.myapplication.ui.theme.viewmodel.UserViewModel
+
+
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewModel()) {
+fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewModel(), userViewModel: UserViewModel = viewModel()) {
     var email by remember { mutableStateOf("admin@cechriza.net") }
     var password by remember { mutableStateOf("password") }
     var rememberMe by remember { mutableStateOf(false) }
@@ -41,8 +45,14 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
     val background = Color(0xFFF9FBF6)
 
     LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) onLoginSuccess()
+        if (loginState is LoginState.Success) {
+            Log.d("loginState",loginState.toString())
+            //userViewModel.saveUser(loginState)
+            onLoginSuccess()
+        }
     }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -75,9 +85,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
             emailError?.let {
                 Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -136,7 +144,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-
             Text(
                 text = "¿Olvidó la contraseña?",
                 modifier = Modifier.clickable { /* TODO */ },

@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.ui.theme.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -48,6 +50,10 @@ fun HomeScreen() {
 
     val currentTime = remember { mutableStateOf("") }
     val currentDate = remember { mutableStateOf("") }
+    val userViewModel: UserViewModel = viewModel()
+
+    val userName by userViewModel.userName.collectAsState()
+    Log.d("err", userName)
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -97,7 +103,7 @@ fun HomeScreen() {
             Column(modifier = Modifier.fillMaxSize()) {
                 // 🟦 Header azul con reloj y nombre
                 ClockHeader(
-                    name = "Valentina",
+                    name = userName,
                     time = currentTime.value,
                     date = currentDate.value.replaceFirstChar { it.uppercaseChar() }
                 )

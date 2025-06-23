@@ -70,13 +70,17 @@ dependencies {
     implementation(libs.google.play.services.location)
 
     implementation("androidx.camera:camera-camera2:1.3.0")
-    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.3.0")
-    implementation("com.google.mlkit:face-detection:16.1.5")
+    implementation("com.google.mlkit:face-detection:16.1.7")
 
     // ROOM
     implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.7.2")
+    implementation("androidx.room:room-ktx:2.7.2")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
+
 
 }
