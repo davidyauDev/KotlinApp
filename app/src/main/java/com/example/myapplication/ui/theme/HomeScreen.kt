@@ -1,6 +1,5 @@
-// HomeScreen.kt
-package com.example.myapplication.ui.theme
 
+package com.example.myapplication.ui.theme
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -27,31 +26,38 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.ui.theme.viewmodel.AttendanceViewModel
 import com.example.myapplication.ui.theme.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 @OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-
+    var isEntry by remember { mutableStateOf(true) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showSnackbar by remember { mutableStateOf(false) }
     var showCamera by remember { mutableStateOf(false) }
     var photoLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    val attendanceViewModel: AttendanceViewModel = viewModel()
 
     val currentTime = remember { mutableStateOf("") }
     val currentDate = remember { mutableStateOf("") }
     val userViewModel: UserViewModel = viewModel()
 
+    var currentAttendanceType by remember { mutableStateOf(AttendanceType.ENTRADA) }
+
+    LastMarkText(viewModel = attendanceViewModel)
     val userName by userViewModel.userName.collectAsState()
     Log.d("err", userName)
 
@@ -108,7 +114,6 @@ fun HomeScreen() {
                     date = currentDate.value.replaceFirstChar { it.uppercaseChar() }
                 )
 
-                // ⬜ Parte blanca con resto de contenido
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -117,15 +122,12 @@ fun HomeScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ShiftCard(shiftText = "No Planificado")
-
-                    LastMarkText(lastMark = "11:27 (dic/13)")
-
+                    LastMarkText(viewModel = attendanceViewModel)
                     Spacer(modifier = Modifier.height(24.dp))
-
                     EntryExitButtons(
                         onEntry = {
+                            currentAttendanceType = AttendanceType.ENTRADA
                             cameraPermissionLauncher.launch(
                                 arrayOf(
                                     Manifest.permission.CAMERA,
@@ -135,10 +137,21 @@ fun HomeScreen() {
                             )
                         },
                         onExit = {
-                            // Acción de salida
+                            currentAttendanceType = AttendanceType.SALIDA
+                            cameraPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.CAMERA,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        },
+                        onLogout = {
+                            Toast.makeText(context, "Sesión cerrada correctamente", Toast.LENGTH_SHORT).show()
+                            navController.navigate("login") { popUpTo("home") { inclusive = true } }
+                            userViewModel.clearUser()
                         }
                     )
-
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
@@ -149,28 +162,48 @@ fun HomeScreen() {
                     val uri = saveBitmapToFile(context, bitmap)
                     Log.d("SELFIE", "Imagen guardada: $uri")
 
-                    photoLocation?.let {
-                        Log.d("LOCATION", "Lat: ${it.first}, Lon: ${it.second}")
-                    } ?: Toast.makeText(context, "Ubicación aún no disponible", Toast.LENGTH_SHORT).show()
+                    photoLocation?.let { location ->
+                        Log.d("LOCATION", "Lat: ${location.first}, Lon: ${location.second}")
 
-                    showCamera = false
-                    showSnackbar = true
+                        val note = if (currentAttendanceType == AttendanceType.ENTRADA) {
+                            "Registro de entrada"
+                        } else {
+                            "Registro de salida"
+                        }
+
+                        attendanceViewModel.saveAttendance(
+                            latitude = location.first,
+                            longitude = location.second,
+                            notes = note,
+                            type = currentAttendanceType
+                        )
+                        showCamera = false
+                        showSnackbar = true
+
+                    } ?: Toast.makeText(context, "Ubicación aún no disponible", Toast.LENGTH_SHORT).show()
                 }
             )
         }
     }
 }
 
-
 @Composable
-fun LastMarkText(lastMark: String = "11:27 (dic/13)") {
+fun LastMarkText(viewModel: AttendanceViewModel) {
+    val lastAttendance by viewModel.lastAttendance.observeAsState()
+
+    val displayText = if (lastAttendance != null) {
+        val date = Date(lastAttendance!!.timestamp)
+        val formattedTime = SimpleDateFormat("HH:mm (MMM/dd)", Locale.getDefault()).format(date)
+        formattedTime
+    } else {
+        "Sin registros"
+    }
     Text(
-        text = "Última marca de salida: $lastMark",
+        text = "Última marca de salida: $displayText",
         style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
     )
 }
-
 
 @Composable
 fun ClockHeader(
@@ -264,39 +297,68 @@ fun ShiftCard(shiftText: String = "No Planificado") {
 @Composable
 fun EntryExitButtons(
     onEntry: () -> Unit,
-    onExit: () -> Unit
+    onExit: () -> Unit,
+    onLogout: () -> Unit
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    val context = LocalContext.current
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
     ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = onEntry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFB300), // Mostaza
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("ENTRADA")
+            }
+
+            OutlinedButton(
+                onClick = onExit,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("SALIDA")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         Button(
-            onClick = onEntry,
+            onClick = {
+                // Mostrar un mensaje de cierre de sesión
+                Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                onLogout() // Callback para redirigir o limpiar sesión
+            },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFB300), // Mostaza
+                containerColor = Color(0xFFD32F2F), // Rojo
                 contentColor = Color.White
             ),
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth(0.8f)
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("ENTRADA")
-        }
-
-        OutlinedButton(
-            onClick = onExit,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("SALIDA")
+            Text(text = "Cerrar Sesión")
         }
     }
 }
+
 
 
 fun saveBitmapToFile(context: Context, bitmap: Bitmap): Uri {

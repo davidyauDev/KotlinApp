@@ -14,4 +14,8 @@ interface AttendanceDao {
 
     @Query("SELECT * FROM attendance_table ORDER BY timestamp DESC")
     fun getAllAttendances(): LiveData<List<Attendance>>
+
+    @Query("SELECT * FROM attendance_table ORDER BY timestamp DESC LIMIT 1")
+    fun getLastAttendance(): LiveData<Attendance?>
+
 }

@@ -46,13 +46,13 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
 
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            Log.d("loginState",loginState.toString())
-            //userViewModel.saveUser(loginState)
+            val successState = loginState as? LoginState.Success
+            successState?.let {
+                userViewModel.saveUser(it.user.name,it.token,it.user.id,it.user.email)
+            }
             onLoginSuccess()
         }
     }
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
