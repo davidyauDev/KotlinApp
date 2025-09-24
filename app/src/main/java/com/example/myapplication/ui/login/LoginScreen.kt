@@ -1,6 +1,5 @@
-package com.example.myapplication.ui.theme
+package com.example.myapplication.ui.login
 
-import android.util.Log
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,15 +23,25 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
-import com.example.myapplication.ui.theme.viewmodel.LoginState
-import com.example.myapplication.ui.theme.viewmodel.LoginViewModel
-import com.example.myapplication.ui.theme.viewmodel.UserViewModel
+import com.example.myapplication.data.network.RetrofitClient
+import com.example.myapplication.data.repository.AuthRepository
+import com.example.myapplication.ui.user.UserViewModel
 
 
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewModel(), userViewModel: UserViewModel = viewModel()) {
-    var email by remember { mutableStateOf("admin@cechriza.net") }
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    userViewModel: UserViewModel = viewModel()
+) {
+    val api = remember { RetrofitClient.apiWithoutToken }
+    val repository = remember { AuthRepository(api) }
+
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(repository)
+    )
+
+    var email by remember { mutableStateOf("admin@example.com") }
     var password by remember { mutableStateOf("password") }
     var rememberMe by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf<String?>(null) }
@@ -41,7 +50,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, viewModel: LoginViewModel = viewMode
     val loginState by viewModel.loginState.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    val logoBlue = Color(0xFF0051A8)
+    val logoBlue = Color(0xFF22446C)
     val background = Color(0xFFF9FBF6)
 
     LaunchedEffect(loginState) {

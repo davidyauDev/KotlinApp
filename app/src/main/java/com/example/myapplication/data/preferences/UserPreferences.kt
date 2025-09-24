@@ -2,7 +2,9 @@ package com.example.myapplication.data.preferences
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -14,7 +16,7 @@ class UserPreferences(private val context: Context) {
     companion object {
         val USER_NAME_KEY = stringPreferencesKey("USER_NAME")
         val USER_TOKEN_KEY = stringPreferencesKey("USER_TOKEN")
-        val USER_ID_KEY = stringPreferencesKey("USER_ID")
+        val USER_ID_KEY = intPreferencesKey("USER_ID")
         val USER_EMAIL_KEY = stringPreferencesKey("USER_EMAIL")
     }
 
@@ -24,13 +26,13 @@ class UserPreferences(private val context: Context) {
     val userToken: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[USER_TOKEN_KEY] ?: "" }
 
-    val userId: Flow<String> = context.dataStore.data
-        .map { preferences -> preferences[USER_ID_KEY] ?: "" }
+    val userId: Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[USER_ID_KEY] ?: 0 }
 
     val userEmail: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[USER_EMAIL_KEY] ?: "" }
 
-    suspend fun saveUser(name: String, token: String, id: String, email: String) {
+    suspend fun saveUser(name: String, token: String, id: Int, email: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME_KEY] = name
             preferences[USER_TOKEN_KEY] = token

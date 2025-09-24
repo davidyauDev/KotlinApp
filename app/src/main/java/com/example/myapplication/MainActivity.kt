@@ -9,8 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable // <- IMPORTACIÓN FALTANTE
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.ui.login.LoginScreen
 import com.example.myapplication.ui.theme.HomeScreen
-import com.example.myapplication.ui.theme.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

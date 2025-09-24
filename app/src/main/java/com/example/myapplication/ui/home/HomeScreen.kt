@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.data.local.AttendanceType
-import com.example.myapplication.ui.theme.viewmodel.AttendanceViewModel
-import com.example.myapplication.ui.theme.viewmodel.UserViewModel
+import com.example.myapplication.ui.Attendance.AttendanceViewModel
+import com.example.myapplication.ui.user.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -156,7 +156,7 @@ fun HomeScreen(navController: NavController) {
                 }
             }
         } else {
-            CameraWithFaceDetection(
+            CameraWithFaceDetection (
                 onFaceDetected = { Log.d("Face", "Rostro detectado") },
                 onCaptureImage = { bitmap ->
                     val uri = saveBitmapToFile(context, bitmap)

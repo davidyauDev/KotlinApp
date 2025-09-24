@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.theme.viewmodel
+package com.example.myapplication.ui.user
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -18,8 +18,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _userToken = MutableStateFlow("")
     val userToken: StateFlow<String> = _userToken
 
-    private val _userId = MutableStateFlow("")
-    val userId: StateFlow<String> = _userId
+    private val _userId = MutableStateFlow(0)
+    val userId: StateFlow<Int> = _userId
 
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail
@@ -39,7 +39,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveUser(name: String, token: String, id: String, email: String) {
+    fun saveUser(name: String, token: String, id: Int, email: String) {
         viewModelScope.launch {
             userPreferences.saveUser(name, token, id, email)
             _userName.value = name
@@ -54,7 +54,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             userPreferences.clearUser()
             _userName.value = ""
             _userToken.value = ""
-            _userId.value = ""
+            _userId.value = 0
             _userEmail.value = ""
         }
     }
