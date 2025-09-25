@@ -23,6 +23,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @androidx.camera.core.ExperimentalGetImage
@@ -38,7 +39,23 @@ fun CameraWithFaceDetection(
 
     val executor = ContextCompat.getMainExecutor(context)
 
+    val faceDetector = remember {
+        FaceDetection.getClient(
+            FaceDetectorOptions.Builder()
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                .enableTracking()
+                .build()
+        )
+    }
+
+    // 🔹 Snackbar state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     Box(modifier = Modifier.fillMaxSize()) {
+        // Snackbar host
+        SnackbarHost(hostState = snackbarHostState)
+
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize()) {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
@@ -48,71 +65,55 @@ fun CameraWithFaceDetection(
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-                val imageAnalyzer = ImageAnalysis.Builder().build().also {
-                    it.setAnalyzer(executor) { imageProxy ->
-                        val mediaImage = imageProxy.image
-                        if (mediaImage != null) {
-                            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-                            FaceDetection.getClient(
-                                FaceDetectorOptions.Builder()
-                                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-                                    .enableTracking()
-                                    .build()
-                            ).process(image)
-                                .addOnSuccessListener { faces ->
-                                    faceDetected = false
+                val imageAnalyzer = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also {
+                        it.setAnalyzer(executor) { imageProxy ->
+                            val mediaImage = imageProxy.image
+                            if (mediaImage != null) {
+                                val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                                faceDetector.process(image)
+                                    .addOnSuccessListener { faces ->
+                                        faceDetected = false
+                                        if (faces.size == 1) {
+                                            val face = faces.first()
+                                            val boundingBox = face.boundingBox
 
-                                    if (faces.size == 1) {
-                                        faceDetected = true
+                                            val faceWidth = boundingBox.width().toFloat()
+                                            val faceHeight = boundingBox.height().toFloat()
+                                            val previewWidth = previewView.width.toFloat()
+                                            val previewHeight = previewView.height.toFloat()
 
-                                        val face = faces.first()
-                                        val boundingBox = face.boundingBox
+                                            val widthRatio = faceWidth / previewWidth
+                                            val heightRatio = faceHeight / previewHeight
 
-                                        val faceWidth = boundingBox.width().toFloat()
-                                        val faceHeight = boundingBox.height().toFloat()
-                                        val previewWidth = previewView.width.toFloat()
-                                        val previewHeight = previewView.height.toFloat()
+                                            val isBigEnough = widthRatio > 0.25f && heightRatio > 0.12f
+                                            val yaw = abs(face.headEulerAngleY)
+                                            val pitch = abs(face.headEulerAngleX)
+                                            val isFacingFront = yaw < 15 && pitch < 15
 
-                                        val widthRatio = faceWidth / previewWidth
-                                        val heightRatio = faceHeight / previewHeight
+                                            faceDetected = isBigEnough && isFacingFront
 
-                                        val isBigEnough = widthRatio > 0.25f && heightRatio > 0.12f
-                                        val isCentered = boundingBox.centerY() > previewHeight * 0.25f &&
-                                                boundingBox.centerY() < previewHeight * 0.75f
-
-                                        val yaw = abs(face.headEulerAngleY)
-                                        val pitch = abs(face.headEulerAngleX)
-                                        val isFacingFront = yaw < 15 && pitch < 15
-
-                                        Log.d("DEBUG_FACE", "Preview size: ${previewWidth}x${previewHeight}")
-                                        Log.d("DEBUG_FACE", "Face size: ${faceWidth}x${faceHeight}")
-                                        Log.d("DEBUG_FACE", "Ratios: widthRatio=$widthRatio, heightRatio=$heightRatio")
-
-                                        Log.d("isBigEnough" , isBigEnough.toString())
-                                        Log.d("isCentered" , isCentered.toString())
-                                        Log.d("isFacingFront" , isFacingFront.toString())
-                                        if (isBigEnough  && isFacingFront) {
-                                            faceDetected = true
-                                            onFaceDetected()
-                                        } else {
-                                            faceDetected = false
+                                            if (faceDetected) {
+                                                onFaceDetected()
+                                            }
                                         }
-
+                                        imageProxy.close()
                                     }
-
-                                    imageProxy.close()
-                                }
-                                .addOnFailureListener {
-                                    faceDetected = false
-                                    imageProxy.close()
-                                }
+                                    .addOnFailureListener {
+                                        faceDetected = false
+                                        imageProxy.close()
+                                    }
+                            } else {
+                                imageProxy.close()
+                            }
                         }
                     }
-                }
-
 
                 val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
+                cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
@@ -124,8 +125,6 @@ fun CameraWithFaceDetection(
 
         // Overlay del marco
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val canvasWidth = size.width
-            val canvasHeight = size.height
             val rectSize = size.minDimension * 0.6f
 
             drawRect(
@@ -137,16 +136,19 @@ fun CameraWithFaceDetection(
                 size = Size(rectSize, rectSize),
                 style = Stroke(width = 6f)
             )
-
         }
 
-        // Botón para capturar si hay rostro
+        // Botón solo si hay rostro detectado
         if (faceDetected) {
             Button(
                 onClick = {
                     val bitmap = previewView.bitmap
                     if (bitmap != null) {
                         onCaptureImage(bitmap)
+
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("✔️ Asistencia registrada con éxito")
+                        }
                     }
                 },
                 modifier = Modifier

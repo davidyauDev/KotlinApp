@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.home
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.local.AttendanceType
@@ -40,13 +41,14 @@ class HomeViewModel(
             SimpleDateFormat("EEEE dd, MMM yyyy", Locale("es")).format(Date())
     }
 
-    fun saveAttendance(latitude: Double, longitude: Double, type: AttendanceType) {
+    fun saveAttendance(latitude: Double, longitude: Double, type: AttendanceType, photo: Bitmap) {
         viewModelScope.launch {
-            val result = attendanceRepository.saveAttendance(latitude, longitude, type)
+            val result = attendanceRepository.saveAttendance(latitude, longitude, type, photo)
             _snackbar.value = result.fold(
                 onSuccess = { "✔️ Registro enviado correctamente" },
                 onFailure = { "❌ Error al registrar: ${it.message}" }
             )
         }
     }
+
 }
