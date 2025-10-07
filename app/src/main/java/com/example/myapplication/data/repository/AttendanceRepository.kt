@@ -7,6 +7,8 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.util.Log
+import com.example.myapplication.data.local.Attendance
+import com.example.myapplication.data.local.AttendanceDao
 import com.example.myapplication.data.local.AttendanceType
 import com.example.myapplication.data.model.response.AttendanceResponse
 import com.example.myapplication.data.network.RetrofitClient
@@ -23,7 +25,8 @@ import java.io.FileOutputStream
 
 class AttendanceRepository(
     private val userPreferences: UserPreferences,
-    private val context: Context
+    private val context: Context,
+    private val dao: AttendanceDao
 ) {
 
     suspend fun saveAttendance(
@@ -76,6 +79,19 @@ class AttendanceRepository(
                 photoPart
             )
 
+            val attendanceEntity = Attendance(
+                timestamp = System.currentTimeMillis(),
+                latitude = latitude,
+                longitude = longitude,
+                notes = if (type == AttendanceType.ENTRADA) "Inicio de jornada laboral" else "Fin de jornada laboral",
+                deviceModel = Build.MODEL ?: "Unknown",
+                batteryPercentage = batteryPercentage,
+                signalStrength = 4, // Podrías calcularlo de forma real
+                networkType = networkType,
+                isInternetAvailable = isInternetAvailable,
+                type = type
+            )
+            dao.insert(attendanceEntity)
             if (response.isSuccessful) {
                 response.body()?.let {
                     Log.d("API_SUCCESS", " ${it.message}")

@@ -1,7 +1,6 @@
-package com.example.myapplication.ui.theme
+package com.example.myapplication.ui.camera
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView

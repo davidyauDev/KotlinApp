@@ -74,6 +74,11 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.0")
     implementation("com.google.mlkit:face-detection:16.1.7")
 
+    implementation("com.google.accompanist:accompanist-pager:0.32.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+
     // ROOM
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.7.2")

@@ -20,6 +20,7 @@ data class Attendance(
     val signalStrength: Int, // Nivel de señal (0 a 4 normalmente)
     val networkType: String, // Ej: WIFI, LTE, 3G, 2G, SIN_CONEXION
     val isInternetAvailable: Boolean ,  // Si puede acceder a internet en ese moment
-    val type: AttendanceType
+    val type: AttendanceType ,
+
 
 )
