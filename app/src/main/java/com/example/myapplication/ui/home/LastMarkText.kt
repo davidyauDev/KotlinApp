@@ -16,7 +16,7 @@ import java.util.*
 
 @Composable
 fun LastMarkText(viewModel: AttendanceViewModel) {
-    val lastAttendanceState = viewModel.lastAttendance.observeAsState()
+    val lastAttendanceState = viewModel.getLastAttendance().observeAsState()
     val lastAttendance = lastAttendanceState.value
 
     val displayText = if (lastAttendance != null) {
@@ -25,7 +25,7 @@ fun LastMarkText(viewModel: AttendanceViewModel) {
         val type = lastAttendance.type.name
         "Última marca de $type: $formatted"
     } else {
-        "Sin registros"
+        "Sin registers"
     }
 
     Text(

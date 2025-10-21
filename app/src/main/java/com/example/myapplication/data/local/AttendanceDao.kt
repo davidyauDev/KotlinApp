@@ -17,4 +17,7 @@ interface AttendanceDao {
     @Query("SELECT * FROM attendance_table ORDER BY timestamp DESC LIMIT 1")
     fun getLastAttendance(): LiveData<Attendance?>
 
+    @Query("SELECT * FROM attendance_table WHERE timestamp BETWEEN :start AND :end ORDER BY timestamp DESC")
+    fun getAttendancesBetween(start: Long, end: Long): LiveData<List<Attendance>>
+
 }

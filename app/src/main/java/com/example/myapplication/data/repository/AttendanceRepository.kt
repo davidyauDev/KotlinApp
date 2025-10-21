@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.util.Log
+import androidx.lifecycle.LiveData
 import com.example.myapplication.data.local.Attendance
 import com.example.myapplication.data.local.AttendanceDao
 import com.example.myapplication.data.local.AttendanceType
@@ -131,4 +132,15 @@ class AttendanceRepository(
         val capabilities = cm.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
+
+    fun getAttendancesBetween(start: Long, end: Long): LiveData<List<Attendance>> =
+        dao.getAttendancesBetween(start, end)
+
+    fun getAllAttendances(): LiveData<List<Attendance>> =
+        dao.getAllAttendances()
+
+    fun getLastAttendance(): LiveData<Attendance?> {
+        return dao.getLastAttendance()
+    }
+
 }

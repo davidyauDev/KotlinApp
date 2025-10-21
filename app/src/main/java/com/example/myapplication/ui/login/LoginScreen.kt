@@ -26,7 +26,7 @@ import com.example.myapplication.R
 import com.example.myapplication.data.network.RetrofitClient
 import com.example.myapplication.data.repository.AuthRepository
 import com.example.myapplication.ui.user.UserViewModel
-
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 @Composable
@@ -49,10 +49,15 @@ fun LoginScreen(
 
     val loginState by viewModel.loginState.collectAsState()
     val focusManager = LocalFocusManager.current
-
+    val systemUiController = rememberSystemUiController()
     val logoBlue = Color(0xFF22446C)
     val background = Color(0xFFF9FBF6)
-
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = background,
+            darkIcons = true
+        )
+    }
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
             val successState = loginState as? LoginState.Success
@@ -71,7 +76,10 @@ fun LoginScreen(
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
+
+
             Image(
                 painter = painterResource(id = R.drawable.logo_cechriza),
                 contentDescription = "Logo CECHRIZA",
@@ -159,6 +167,8 @@ fun LoginScreen(
                 color = logoBlue,
                 style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline)
             )
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+
         }
     }
 }

@@ -28,7 +28,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
                     id = response.user.id,
                     name = response.user.name,
                     email = response.user.email,
-                    roles = response.user.roles
+                    roles = response.user.roles ?: emptyList()
                 )
                 val token = response.access_token
                 _loginState.value = LoginState.Success(user, token)

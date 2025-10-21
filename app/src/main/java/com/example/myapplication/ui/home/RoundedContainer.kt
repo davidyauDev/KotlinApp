@@ -14,9 +14,9 @@ fun RoundedTopContainer(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0051A8)) // fondo general
+            .background(Color(0xFF0051A8))
     ) {
-        Spacer(modifier = Modifier.height(1.dp)) // espacio entre header y contenedor
+        Spacer(modifier = Modifier.height(1.dp))
 
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -28,7 +28,7 @@ fun RoundedTopContainer(content: @Composable ColumnScope.() -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp), // contenido interior
+                    .padding(top = 16.dp),
                 content = content
             )
         }
