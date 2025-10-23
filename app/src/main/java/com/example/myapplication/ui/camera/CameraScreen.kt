@@ -1,9 +1,11 @@
 package com.example.myapplication.ui.camera
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.Toast
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -35,9 +37,12 @@ import androidx.camera.core.Preview
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.CameraSelector
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.asImageBitmap
+
 @androidx.camera.core.ExperimentalGetImage
 @Composable
 fun CameraScreen(
@@ -115,6 +120,8 @@ fun AttendanceCameraView(
     val previewView = remember { androidx.camera.view.PreviewView(context) }
     val executor = ContextCompat.getMainExecutor(context)
 
+    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = {
@@ -148,11 +155,14 @@ fun AttendanceCameraView(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
+                .size(48.dp)
+                .background(Color.Black.copy(alpha = 0.5f), shape = androidx.compose.foundation.shape.CircleShape)
         ) {
             androidx.compose.material3.Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Close,
                 contentDescription = "Cerrar cámara",
-                tint = Color.White
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -160,7 +170,7 @@ fun AttendanceCameraView(
             onClick = {
                 val bitmap = previewView.bitmap
                 if (bitmap != null) {
-                    onCaptureImage(bitmap)
+                    capturedBitmap = bitmap
                 } else {
                     Toast.makeText(context, "❌ No se pudo capturar la imagen", Toast.LENGTH_SHORT).show()
                 }
@@ -182,6 +192,38 @@ fun AttendanceCameraView(
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = Color.White)
+            }
+        }
+
+        if (capturedBitmap != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .zIndex(3f),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    bitmap = capturedBitmap!!.asImageBitmap(),
+                    contentDescription = "Vista previa",
+                    modifier = Modifier.fillMaxSize()
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp), // moved buttons a bit higher
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Button(onClick = { capturedBitmap = null }) {
+                        Text("Cancelar")
+                    }
+                    Button(onClick = {
+                        onCaptureImage(capturedBitmap!!)
+                        capturedBitmap = null
+                    }) {
+                        Text("Aceptar")
+                    }
+                }
             }
         }
     }

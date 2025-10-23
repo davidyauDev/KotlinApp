@@ -2,14 +2,17 @@ package com.example.myapplication.data.network
 
 import com.example.myapplication.data.model.request.LoginRequest
 import com.example.myapplication.data.model.response.AttendanceResponse
+import com.example.myapplication.data.model.response.BannerResponse
 import com.example.myapplication.data.model.response.LoginResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.Response
+import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 interface ApiService {
     @POST("login")
@@ -31,5 +34,12 @@ interface ApiService {
         @Part("type") type: RequestBody,
         @Part photo: MultipartBody.Part
     ): Response<AttendanceResponse>
+
+    @GET("banners")
+    suspend fun getBanners(
+        @Query("per_page") perPage: Int = 15,
+        @Query("status") status: String? = null,
+        @Query("valid") valid: Int? = null
+    ): Response<BannerResponse>
 
 }
