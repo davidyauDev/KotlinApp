@@ -29,4 +29,12 @@ class AttendanceViewModel(
 
         return repository.getAttendancesBetween(startOfDay, endOfDay)
     }
+
+    // New: expose repository helpers so the UI can request different date ranges or all attendances
+    fun getAttendancesBetween(start: Long, end: Long): LiveData<List<Attendance>> =
+        repository.getAttendancesBetween(start, end)
+
+    fun getAllAttendances(): LiveData<List<Attendance>> =
+        repository.getAllAttendances()
+
 }

@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.camera
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.Toast
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -29,7 +28,7 @@ import com.example.myapplication.data.local.AttendanceType
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
 import com.example.myapplication.ui.Attendance.AttendanceViewModel
-import com.example.myapplication.ui.home.getLastKnownLocation
+import com.example.myapplication.ui.home.awaitLocationWithTimeout
 import com.example.myapplication.ui.home.saveBitmapToFile
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
@@ -69,34 +68,32 @@ fun CameraScreen(
             Log.d("SELFIE", "Imagen guardada: $uri")
             coroutineScope.launch {
                 isLoading = true
-                getLastKnownLocation(fusedLocationClient) { location ->
-                    location?.let { loc ->
-                        coroutineScope.launch {
-                            val result = attendanceRepository.saveAttendance(
-                                latitude = loc.latitude,
-                                longitude = loc.longitude,
-                                type = attendanceType,
-                                photo = bitmap
-                            )
-                            isLoading = false
+                // Obtener ubicación usando la versión suspendible con timeout
+                val loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                if (loc != null) {
+                    val result = attendanceRepository.saveAttendance(
+                        latitude = loc.latitude,
+                        longitude = loc.longitude,
+                        type = attendanceType,
+                        photo = bitmap
+                    )
+                    isLoading = false
 
-                            if (result.isSuccess) {
-                                Toast.makeText(context, "🎉 Asistencia registrada con éxito", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            } else {
-                                val error = result.exceptionOrNull()
-                                Log.e("AttendanceError", "Error al registrar asistencia", error)
-                                Toast.makeText(
-                                    context,
-                                    "Error al registrar asistencia: ${error?.message}",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    } ?: run {
-                        isLoading = false
-                        Toast.makeText(context, "Ubicación no disponible al momento de la captura.", Toast.LENGTH_SHORT).show()
+                    if (result.isSuccess) {
+                        Toast.makeText(context, "🎉 Asistencia registrada con éxito", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    } else {
+                        val error = result.exceptionOrNull()
+                        Log.e("AttendanceError", "Error al registrar asistencia", error)
+                        Toast.makeText(
+                            context,
+                            "Error al registrar asistencia: ${error?.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
+                } else {
+                    isLoading = false
+                    Toast.makeText(context, "Ubicación no disponible al momento de la captura.", Toast.LENGTH_SHORT).show()
                 }
             }
         },

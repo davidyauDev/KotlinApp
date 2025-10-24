@@ -4,6 +4,7 @@
     <option name="migrationStatus" value="IN_PROGRESS" />
     <option name="pendingSessionIds">
       <option value="4472144b-08d5-4854-a51f-aba403b571e1" />
+      <option value="53b32707-8d62-424a-98e4-b9d7e1b576d2" />
       <option value="55fcaff8-c8e9-416a-bc3e-7b797b181769" />
       <option value="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <option value="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
@@ -16,6 +17,19 @@
             <set>
               <option value="4a815fd0-d367-4838-8884-d818e2e0ddd0" />
               <option value="67d957f7-3725-4df3-a74a-e645fdb6c0ae" />
+            </set>
+          </value>
+        </entry>
+        <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2">
+          <value>
+            <set>
+              <option value="e90245fa-c3e5-40b8-9645-39516744c626" />
+              <option value="e791272c-a41a-40d8-a698-f32502587143" />
+              <option value="77daa3da-c6bc-4331-aba9-16de6e89d5f3" />
+              <option value="fa7bb5b4-9978-4530-84a4-0bed74e46271" />
+              <option value="22c3790e-0db0-41ab-b28d-233f9f386cd8" />
+              <option value="6027f141-04b7-463d-a2ee-b3d6e186ef65" />
+              <option value="05e554dd-5e94-43af-b1d4-b157ddd9ecbb" />
             </set>
           </value>
         </entry>
@@ -52,7 +66,10 @@
           <value>
             <set>
               <option value="0be7eb85-93ce-451b-b36e-37c7d83bc5b8" />
+              <option value="3232d13f-e3c5-4804-8cd8-2a912d027bdf" />
+              <option value="47bdbb99-ba65-4072-8e6b-67eb0bf6667c" />
               <option value="52fe7893-99df-4cce-b15a-54964747c282" />
+              <option value="711138af-6570-4bda-9d5e-094692a8c12a" />
               <option value="7aa6421e-84e5-4e38-94d6-9ee02e0b1699" />
               <option value="7cd0c644-b961-4b90-a259-8a6dcfd11f02" />
               <option value="84dca45f-4cf2-4f0a-9305-1d8e1fca28e2" />
@@ -67,11 +84,19 @@
       </map>
     </option>
     <pendingWorkingSetItems>
+      <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2">
+        <set>
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/Attendance/AttendanceViewModel.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/Attendance/AttendanceScreen.kt" />
+        </set>
+      </entry>
       <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
       <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699">
         <set>
           <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/LocationUtils.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
         </set>
       </entry>
     </pendingWorkingSetItems>
