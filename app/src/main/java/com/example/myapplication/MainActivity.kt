@@ -30,10 +30,42 @@ import com.example.myapplication.ui.Attendance.AttendanceViewModelFactory
 import com.example.myapplication.ui.camera.CameraScreen
 import com.example.myapplication.ui.home.HomeScreen
 import com.example.myapplication.ui.login.LoginScreen
+import kotlinx.coroutines.delay
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.camera.core.ExperimentalGetImage
+import androidx.work.*
+import com.example.myapplication.work.SyncAttendancesWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Programar WorkManager para sincronización periódica (cada 15 minutos mínimo)
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val periodicWork = PeriodicWorkRequestBuilder<SyncAttendancesWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "sync_attendances",
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicWork
+        )
+
+        // Ejecutar un trabajo inmediato al iniciar para intentar sincronizar pendientes
+        val immediateWork = OneTimeWorkRequestBuilder<SyncAttendancesWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueue(immediateWork)
+
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
@@ -44,6 +76,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun SplashScreen(onReady: (Boolean) -> Unit, userPreferences: UserPreferences) {
+    // Simple composable that reads the stored token and signals readiness
+    val token by userPreferences.userToken.collectAsState(initial = "")
+    LaunchedEffect(token) {
+        // small delay to show splash if needed
+        delay(300)
+        onReady(token.isNotEmpty())
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Cargando...", modifier = Modifier.align(Alignment.Center))
+    }
+}
+
+@androidx.camera.core.ExperimentalGetImage
+@Composable
 fun AppNavigation(navController: NavHostController) {
     val context = LocalContext.current.applicationContext as Application
     val userPreferences = remember { UserPreferences(context) }
@@ -53,7 +101,17 @@ fun AppNavigation(navController: NavHostController) {
     val factory = AttendanceViewModelFactory(context, repository)
     val attendanceViewModel: AttendanceViewModel = viewModel(factory = factory)
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+            SplashScreen(onReady = { logged ->
+                if (logged) {
+                    navController.navigate("main") { popUpTo("splash") { inclusive = true } }
+                } else {
+                    navController.navigate("login") { popUpTo("splash") { inclusive = true } }
+                }
+            }, userPreferences = userPreferences)
+        }
+
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
@@ -110,6 +168,7 @@ fun BottomNavScreen(navController: NavHostController, attendanceViewModel: Atten
     }
 }
 
+@androidx.camera.core.ExperimentalGetImage
 @Composable
 fun ContentScreen(
     selectedIndex: Int,

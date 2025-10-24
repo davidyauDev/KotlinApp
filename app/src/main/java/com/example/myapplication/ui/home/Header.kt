@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BlueHeaderWithName(userName: String, modifier: Modifier = Modifier) {
+fun BlueHeaderWithName(userName: String, currentDate: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(Color(0xFF0051A8))
@@ -26,18 +26,28 @@ fun BlueHeaderWithName(userName: String, modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 24.dp),
+                .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Hola, ${userName.uppercase()}",
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp,
-                lineHeight = 28.sp
-            )
+            Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = "Hola, ${userName.uppercase()}",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp,
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = currentDate,
+                    color = Color(0xFFBEE1FF),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
 
             Icon(
                 imageVector = Icons.Default.Notifications,

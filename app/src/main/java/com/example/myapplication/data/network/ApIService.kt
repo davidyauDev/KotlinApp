@@ -32,6 +32,7 @@ interface ApiService {
         @Part("network_type") networkType: RequestBody,
         @Part("is_internet_available") isInternetAvailable: RequestBody,
         @Part("type") type: RequestBody,
+        @Part("client_id") clientId: RequestBody,
         @Part photo: MultipartBody.Part
     ): Response<AttendanceResponse>
 

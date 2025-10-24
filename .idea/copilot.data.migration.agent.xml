@@ -14,17 +14,17 @@
         <entry key="4472144b-08d5-4854-a51f-aba403b571e1">
           <value>
             <set>
-              <option value="67d957f7-3725-4df3-a74a-e645fdb6c0ae" />
               <option value="4a815fd0-d367-4838-8884-d818e2e0ddd0" />
+              <option value="67d957f7-3725-4df3-a74a-e645fdb6c0ae" />
             </set>
           </value>
         </entry>
         <entry key="55fcaff8-c8e9-416a-bc3e-7b797b181769">
           <value>
             <set>
-              <option value="fc0406b8-23f8-4e7e-875a-e008e12d8358" />
-              <option value="8ece3a3d-ae53-4088-bd2a-fe5b88476867" />
               <option value="81fb2ed0-d393-4082-ae43-0ab94e3c38f9" />
+              <option value="8ece3a3d-ae53-4088-bd2a-fe5b88476867" />
+              <option value="fc0406b8-23f8-4e7e-875a-e008e12d8358" />
             </set>
           </value>
         </entry>
@@ -41,10 +41,26 @@
         <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c">
           <value>
             <set>
-              <option value="c5aaff6c-d4db-4e52-9bf5-438169829b96" />
+              <option value="71c8abd5-4aed-4611-bde4-bbd0f91ca06d" />
               <option value="7a977a91-a6a0-4af4-894d-403a6dc35092" />
               <option value="aa7d1ce3-7d83-4634-9645-94818145c838" />
-              <option value="71c8abd5-4aed-4611-bde4-bbd0f91ca06d" />
+              <option value="c5aaff6c-d4db-4e52-9bf5-438169829b96" />
+            </set>
+          </value>
+        </entry>
+        <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699">
+          <value>
+            <set>
+              <option value="0be7eb85-93ce-451b-b36e-37c7d83bc5b8" />
+              <option value="52fe7893-99df-4cce-b15a-54964747c282" />
+              <option value="7aa6421e-84e5-4e38-94d6-9ee02e0b1699" />
+              <option value="7cd0c644-b961-4b90-a259-8a6dcfd11f02" />
+              <option value="84dca45f-4cf2-4f0a-9305-1d8e1fca28e2" />
+              <option value="8d10942e-224c-4271-8219-e35d7536a728" />
+              <option value="e6aee589-87c3-41f3-bd0a-1d3588242815" />
+              <option value="e8cfe3dc-c546-405f-a2db-3e16441b8fde" />
+              <option value="eebabae5-eefd-4f85-b6e0-0449faf8ed6a" />
+              <option value="feea156d-f723-4a8d-8761-8f735bdeff7d" />
             </set>
           </value>
         </entry>
@@ -52,11 +68,10 @@
     </option>
     <pendingWorkingSetItems>
       <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
-      <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c">
+      <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
+      <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699">
         <set>
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/BannerCarousel.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/network/RetrofitClient.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
         </set>
       </entry>
     </pendingWorkingSetItems>

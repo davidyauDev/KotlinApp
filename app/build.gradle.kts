@@ -92,5 +92,7 @@ dependencies {
 
     implementation ("androidx.compose.runtime:runtime-livedata:1.6.0")
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
 
 }

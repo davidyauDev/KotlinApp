@@ -3,6 +3,7 @@ package com.example.myapplication.ui.user
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.preferences.SessionManager
 import com.example.myapplication.data.preferences.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     val userEmail: StateFlow<String> = _userEmail
 
     init {
+        // Initialize from in-memory SessionManager first (set at login)
+        SessionManager.userName?.let { _userName.value = it }
+        SessionManager.token?.let { _userToken.value = it }
+        SessionManager.userId?.let { _userId.value = it }
+        SessionManager.userEmail?.let { _userEmail.value = it }
+
         viewModelScope.launch {
             userPreferences.userName.collect { _userName.value = it }
         }
@@ -47,6 +54,14 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             _userId.value = id
             _userEmail.value = email
         }
+    }
+
+    // Nuevo: actualizar solo en memoria (sin persistir)
+    fun setUserInMemory(name: String, token: String, id: Int, email: String) {
+        _userName.value = name
+        _userToken.value = token
+        _userId.value = id
+        _userEmail.value = email
     }
 
     fun clearUser() {

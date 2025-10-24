@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.data.network.RetrofitClient
+import com.example.myapplication.data.preferences.SessionManager
 import com.example.myapplication.data.repository.AuthRepository
 import com.example.myapplication.ui.user.UserViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -62,7 +63,13 @@ fun LoginScreen(
         if (loginState is LoginState.Success) {
             val successState = loginState as? LoginState.Success
             successState?.let {
-                userViewModel.saveUser(it.user.name,it.token,it.user.id,it.user.email)
+                // Always set session in memory so Home and Camera see the logged user immediately
+                userViewModel.saveUser(it.user.name, it.token, it.user.id, it.user.email)
+                SessionManager.setSession(it.user.id, it.token, it.user.name, it.user.email)
+                // Persist only if user checked "Recordarme"
+                if (rememberMe) {
+                    userViewModel.saveUser(it.user.name, it.token, it.user.id, it.user.email)
+                }
             }
             onLoginSuccess()
         }
@@ -172,7 +179,3 @@ fun LoginScreen(
         }
     }
 }
-
-
-
-

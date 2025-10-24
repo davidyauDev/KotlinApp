@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Attendance::class], version = 1, exportSchema = false)
+@Database(entities = [Attendance::class], version = 2, exportSchema = false)
 abstract class AttendanceDatabase : RoomDatabase() {
     abstract fun attendanceDao(): AttendanceDao
 
@@ -19,7 +19,9 @@ abstract class AttendanceDatabase : RoomDatabase() {
                     context.applicationContext,
                     AttendanceDatabase::class.java,
                     "attendance_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
