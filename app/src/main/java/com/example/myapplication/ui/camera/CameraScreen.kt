@@ -32,6 +32,7 @@ import com.example.myapplication.ui.home.awaitLocationWithTimeout
 import com.example.myapplication.ui.home.saveBitmapToFile
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import androidx.camera.core.Preview
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.CameraSelector
@@ -68,32 +69,45 @@ fun CameraScreen(
             Log.d("SELFIE", "Imagen guardada: $uri")
             coroutineScope.launch {
                 isLoading = true
-                // Obtener ubicación usando la versión suspendible con timeout
-                val loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
-                if (loc != null) {
-                    val result = attendanceRepository.saveAttendance(
-                        latitude = loc.latitude,
-                        longitude = loc.longitude,
-                        type = attendanceType,
-                        photo = bitmap
-                    )
-                    isLoading = false
-
-                    if (result.isSuccess) {
-                        Toast.makeText(context, "🎉 Asistencia registrada con éxito", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
-                    } else {
-                        val error = result.exceptionOrNull()
-                        Log.e("AttendanceError", "Error al registrar asistencia", error)
-                        Toast.makeText(
-                            context,
-                            "Error al registrar asistencia: ${error?.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                try {
+                    // Obtener ubicación usando la versión suspendible con timeout (10s primer intento)
+                    var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
+                    if (loc == null) {
+                        Log.d("CameraScreen", "Ubicación no obtenida en primer intento; reintentando...")
+                        // reintento rápido
+                        delay(1000L)
+                        loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
                     }
-                } else {
+
+                    if (loc != null) {
+                        val result = attendanceRepository.saveAttendance(
+                            latitude = loc.latitude,
+                            longitude = loc.longitude,
+                            type = attendanceType,
+                            photo = bitmap
+                        )
+
+                        if (result.isSuccess) {
+                            Toast.makeText(context, "🎉 Asistencia registrada con éxito", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        } else {
+                            val error = result.exceptionOrNull()
+                            Log.e("AttendanceError", "Error al registrar asistencia", error)
+                            Toast.makeText(
+                                context,
+                                "Error al registrar asistencia: ${error?.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } else {
+                        Log.w("CameraScreen", "Ubicación no disponible después de reintentos")
+                        Toast.makeText(context, "Ubicación no disponible al momento de la captura.", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (ex: Exception) {
+                    Log.e("CameraScreen", "Excepción al obtener ubicación o guardar asistencia", ex)
+                    Toast.makeText(context, "Error inesperado: ${ex.message}", Toast.LENGTH_LONG).show()
+                } finally {
                     isLoading = false
-                    Toast.makeText(context, "Ubicación no disponible al momento de la captura.", Toast.LENGTH_SHORT).show()
                 }
             }
         },

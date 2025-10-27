@@ -8,8 +8,8 @@ import com.example.myapplication.data.model.NavItem
 
 object NavItemList {
     val navItemList = listOf(
-        NavItem("Home", Icons.Default.Home),
-        NavItem("Personal", Icons.Default.Person),
-        NavItem("Settings", Icons.Default.Settings)
+        NavItem("Inicio", Icons.Default.Home),
+        NavItem("Asistencias", Icons.Default.Person),
+        NavItem("Solicitudes", Icons.Default.Settings)
     )
 }

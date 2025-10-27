@@ -11,26 +11,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.myapplication.data.network.RetrofitClient
-import com.example.myapplication.data.preferences.UserPreferences
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.first
 
 val bannerImages  = listOf(
-    "https://v1.padlet.pics/3/image.webp?t=c_limit%2Cdpr_1%2Ch_945%2Cw_1332&url=https%3A%2F%2Fu1.padletusercontent.com%2Fuploads%2Fpadlet-uploads-usc1%2F4079103017%2Fbf749274584322801ee10227c84f4df2%2FCUMPLEA_OS__42_.png%3Fexpiry_token%3D5WaHZRdGG3LkUVQGy3SZ-zdRtq89aJeottSBaF_Hii8dmxJqYDvE2-MDbblcM-ZrVekXW99RReKkJFIoMoKiownz0e6GqrC5X-n1hRaRzh-ylCG_69sW6XmiXJCHDSGHJdSAgb_e-CcMGt4-D3YhzsCq9VpXJeA5cFQmhhNuFo9jMrgBSg4RersxlcdJsv5Jn9dTqQ2BziL7XKoTQpARKCKVtHbgn_oYI6jZ_c6iMBg%3D",
-    "https://v1.padlet.pics/3/image.webp?t=c_limit%2Cdpr_1%2Ch_945%2Cw_668&url=https%3A%2F%2Fu1.padletusercontent.com%2Fuploads%2Fpadlet-uploads-usc1%2F2733472187%2Fa28b128e659229ac8d40c93ccdfd3195%2FS_BADOS_RESUMEN___26_.png%3Fexpiry_token%3D5WaHZRdGG3LkUVQGy3SZ-zdRtq89aJeottSBaF_Hii8dmxJqYDvE2-MDbblcM-ZrVekXW99RReKkJFIoMoKioxnBd-jlvPceu2HaVFtcWusUCewBj6JGoFhwP_aMJpqe8D9YS2CSJ1bgRt5_Yp11GI5TBXm9DOls22-GUU_E0JVbbAsyaqAz4TqWRiKUW3VVHDrJvJPd7XZGxNqyP76sdFIThGVmyUH7HYLOeIGcHxI%3D",
-    "https://v1.padlet.pics/3/image.webp?t=c_limit%2Cdpr_1%2Ch_945%2Cw_1332&url=https%3A%2F%2Fu1.padletusercontent.com%2Fuploads%2Fpadlet-uploads-usc1%2F4079103017%2Fd0b46eaec5e27332d97c6d839a136c0a%2FCUMPLEA_OS__41_.png%3Fexpiry_token%3D5WaHZRdGG3LkUVQGy3SZ-zdRtq89aJeottSBaF_Hii8dmxJqYDvE2-MDbblcM-ZrVekXW99RReKkJFIoMoKiownz0e6GqrC5X-n1hRaRzh8NNmtfEdbIXoQUFmVz0tcsdjfe9KVrmRhg-HlJe_mKm06W6Xu57aGsvPyvbar9UWyfqvIcH_43IMA_CBGlQ5uUqKk1iI7nSjiIkHAlenlWE5lUkGhsEf25M1NSeGVdQug%3D"
+    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.mTZ8DCB21JUEH44C0TPRGgHaHa%3Fpid%3DApi&sp=1761573911T85a546c9bf0260005954ff76bdfec49aea0dcc18cc01c00240286398a2fb557d",
+    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fwww.cechriza.com%2Fstatic%2Fmedia%2Fconfianza-cechriza.png&sp=1761573911Td426b76c9f2583a40cef7927df0e77aee261ea2899c375ecc60bc2f9330a19ce",
+    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.mTZ8DCB21JUEH44C0TPRGgHaHa%3Fpid%3DApi&sp=1761573911T85a546c9bf0260005954ff76bdfec49aea0dcc18cc01c00240286398a2fb557d"
     )
 
 @Composable
 fun BannerCarousel() {
-    val pagerState = rememberPagerState ()
-    val context = LocalContext.current
+    val pagerState = rememberPagerState()
 
     // State for images fetched from API
     var images by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -39,8 +34,8 @@ fun BannerCarousel() {
 
     // Fetch banners from API on composition
     LaunchedEffect(Unit) {
-        // start auto scroll coroutine
-        val autoScrollJob = launch {
+        // start auto scroll coroutine; launched child will be cancelled automatically with this scope
+        launch {
             while (true) {
                 delay(4000)
                 if (images.isNotEmpty()) {
@@ -50,7 +45,9 @@ fun BannerCarousel() {
             }
         }
 
-        // network fetch
+        // Por ahora comentamos la lógica de llamada al API y usamos las rutas estáticas definidas en `bannerImages`.
+        // Esto facilita pruebas locales y evita depender del endpoint remoto temporalmente.
+        /*
         try {
             isLoading = true
 
@@ -80,9 +77,12 @@ fun BannerCarousel() {
             images = bannerImages
         } finally {
             isLoading = false
-            // cancel auto scroll when the effect ends
-            autoScrollJob.cancel()
         }
+        */
+
+        // Uso temporal de las imágenes locales
+        images = bannerImages
+        isLoading = false
     }
 
     Column(

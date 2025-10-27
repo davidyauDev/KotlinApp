@@ -3,6 +3,7 @@
   <component name="AgentMigrationStateService">
     <option name="migrationStatus" value="IN_PROGRESS" />
     <option name="pendingSessionIds">
+      <option value="0f631d98-a520-4147-a7f2-ca6098b4ad12" />
       <option value="4472144b-08d5-4854-a51f-aba403b571e1" />
       <option value="53b32707-8d62-424a-98e4-b9d7e1b576d2" />
       <option value="55fcaff8-c8e9-416a-bc3e-7b797b181769" />
@@ -12,6 +13,15 @@
     </option>
     <option name="pendingTurns">
       <map>
+        <entry key="0f631d98-a520-4147-a7f2-ca6098b4ad12">
+          <value>
+            <set>
+              <option value="3f930a86-8463-4af6-87d5-d13854911699" />
+              <option value="198289dc-6be1-4381-bbda-a5fbfacc7068" />
+              <option value="32a2742f-725a-4954-a44d-a0aa3c01986f" />
+            </set>
+          </value>
+        </entry>
         <entry key="4472144b-08d5-4854-a51f-aba403b571e1">
           <value>
             <set>
@@ -23,13 +33,13 @@
         <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2">
           <value>
             <set>
-              <option value="e90245fa-c3e5-40b8-9645-39516744c626" />
-              <option value="e791272c-a41a-40d8-a698-f32502587143" />
-              <option value="77daa3da-c6bc-4331-aba9-16de6e89d5f3" />
-              <option value="fa7bb5b4-9978-4530-84a4-0bed74e46271" />
+              <option value="05e554dd-5e94-43af-b1d4-b157ddd9ecbb" />
               <option value="22c3790e-0db0-41ab-b28d-233f9f386cd8" />
               <option value="6027f141-04b7-463d-a2ee-b3d6e186ef65" />
-              <option value="05e554dd-5e94-43af-b1d4-b157ddd9ecbb" />
+              <option value="77daa3da-c6bc-4331-aba9-16de6e89d5f3" />
+              <option value="e791272c-a41a-40d8-a698-f32502587143" />
+              <option value="e90245fa-c3e5-40b8-9645-39516744c626" />
+              <option value="fa7bb5b4-9978-4530-84a4-0bed74e46271" />
             </set>
           </value>
         </entry>
@@ -84,21 +94,20 @@
       </map>
     </option>
     <pendingWorkingSetItems>
-      <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2">
+      <entry key="0f631d98-a520-4147-a7f2-ca6098b4ad12">
         <set>
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/Attendance/AttendanceViewModel.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/Attendance/AttendanceScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/LocationUtils.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/BannerCarousel.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/requests/RequestsScreen.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/MainActivity.kt" />
         </set>
       </entry>
+      <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2" />
       <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
-      <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699">
-        <set>
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/LocationUtils.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
-        </set>
-      </entry>
+      <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699" />
     </pendingWorkingSetItems>
   </component>
 </project>

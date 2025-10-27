@@ -30,11 +30,9 @@ import com.example.myapplication.ui.Attendance.AttendanceViewModelFactory
 import com.example.myapplication.ui.camera.CameraScreen
 import com.example.myapplication.ui.home.HomeScreen
 import com.example.myapplication.ui.login.LoginScreen
+import com.example.myapplication.ui.requests.RequestsScreen
 import kotlinx.coroutines.delay
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.Alignment
-import androidx.camera.core.ExperimentalGetImage
 import androidx.work.*
 import com.example.myapplication.work.SyncAttendancesWorker
 import java.util.concurrent.TimeUnit
@@ -75,6 +73,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun SplashScreen(onReady: (Boolean) -> Unit, userPreferences: UserPreferences) {
     // Simple composable that reads the stored token and signals readiness
@@ -85,12 +84,12 @@ fun SplashScreen(onReady: (Boolean) -> Unit, userPreferences: UserPreferences) {
         onReady(token.isNotEmpty())
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text(text = "Cargando...", modifier = Modifier.align(Alignment.Center))
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Cargando...", modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
     }
 }
 
-@androidx.camera.core.ExperimentalGetImage
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun AppNavigation(navController: NavHostController) {
     val context = LocalContext.current.applicationContext as Application
@@ -139,6 +138,7 @@ fun AppNavigation(navController: NavHostController) {
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun BottomNavScreen(navController: NavHostController, attendanceViewModel: AttendanceViewModel) {
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -168,7 +168,7 @@ fun BottomNavScreen(navController: NavHostController, attendanceViewModel: Atten
     }
 }
 
-@androidx.camera.core.ExperimentalGetImage
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun ContentScreen(
     selectedIndex: Int,
@@ -179,7 +179,7 @@ fun ContentScreen(
     when (selectedIndex) {
         0 -> HomeScreen(navController, attendanceViewModel = attendanceViewModel, modifier = modifier)
         1 -> AttendanceScreen(attendanceViewModel = attendanceViewModel, modifier = modifier)
-        2 -> AttendanceScreen(attendanceViewModel = attendanceViewModel, modifier = modifier)
+        2 -> RequestsScreen(modifier = modifier)
     }
 
 }

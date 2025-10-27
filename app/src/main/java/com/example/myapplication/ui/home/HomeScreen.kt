@@ -31,6 +31,7 @@ import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.user.UserViewModel
 import com.google.android.gms.location.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -136,7 +137,7 @@ fun HomeScreen(
                     return@launch
                 }
                  isLoadingLocation = true
-                 val loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                 var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
                  isLoadingLocation = false
                  if (loc != null) {
                     if (!isNavigatingToCamera) {
@@ -145,7 +146,24 @@ fun HomeScreen(
                         navController.navigate("camera/$typePath")
                     }
                 } else {
-                    snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Intenta nuevamente.")
+                    // Intentar un reintento rápido una vez
+                    Log.d("HomeScreen", "Ubicación no obtenida: intentando un reintento rápido (permissionLauncher)")
+                    coroutineScope.launch {
+                        isLoadingLocation = true
+                        snackbarHostState.showSnackbar("Reintentando obtener ubicación...")
+                        delay(1000L)
+                        val loc2 = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                        isLoadingLocation = false
+                        if (loc2 != null) {
+                            if (!isNavigatingToCamera) {
+                                isNavigatingToCamera = true
+                                val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
+                                navController.navigate("camera/$typePath")
+                            }
+                        } else {
+                            snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Intenta nuevamente.")
+                        }
+                    }
                 }
                 isCheckingPermissions = false
             }
@@ -224,7 +242,7 @@ fun HomeScreen(
             }
              coroutineScope.launch {
                  isLoadingLocation = true
-                 val loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                 var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
                  isLoadingLocation = false
                  if (loc != null) {
                     if (!isNavigatingToCamera) {
@@ -233,7 +251,24 @@ fun HomeScreen(
                         navController.navigate("camera/$typePath")
                     }
                 } else {
-                    snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Activa la ubicación y vuelve a intentar.")
+                    // Intentar un reintento rápido una vez
+                    Log.d("HomeScreen", "Ubicación no obtenida: intentando un reintento rápido (startAttendanceFlow)")
+                    coroutineScope.launch {
+                        isLoadingLocation = true
+                        snackbarHostState.showSnackbar("Reintentando obtener ubicación...")
+                        delay(1000L)
+                        val loc2 = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                        isLoadingLocation = false
+                        if (loc2 != null) {
+                            if (!isNavigatingToCamera) {
+                                isNavigatingToCamera = true
+                                val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
+                                navController.navigate("camera/$typePath")
+                            }
+                        } else {
+                            snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Activa la ubicación y vuelve a intentar.")
+                        }
+                    }
                 }
                 isCheckingPermissions = false
             }
