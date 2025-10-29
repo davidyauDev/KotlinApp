@@ -3,22 +3,36 @@
   <component name="AgentMigrationStateService">
     <option name="migrationStatus" value="IN_PROGRESS" />
     <option name="pendingSessionIds">
+      <option value="0c1f6d6d-6d66-488a-9695-c31f0d212c1a" />
       <option value="0f631d98-a520-4147-a7f2-ca6098b4ad12" />
       <option value="4472144b-08d5-4854-a51f-aba403b571e1" />
       <option value="53b32707-8d62-424a-98e4-b9d7e1b576d2" />
       <option value="55fcaff8-c8e9-416a-bc3e-7b797b181769" />
+      <option value="563592d0-18a4-4c40-856c-e4a394c397df" />
       <option value="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <option value="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
       <option value="f9f39a16-9c35-44fb-997f-5e2cc8854699" />
     </option>
     <option name="pendingTurns">
       <map>
+        <entry key="0c1f6d6d-6d66-488a-9695-c31f0d212c1a">
+          <value>
+            <set>
+              <option value="f8941c5e-8a96-4b22-8009-0e9239a2d6b0" />
+              <option value="cbdc9129-53f6-49a7-b97b-d825cf17b478" />
+              <option value="aa228c62-31cc-4ad7-bb82-9eb2afe4bbf4" />
+              <option value="a34ff92b-81da-4dab-bc1d-6df9b3a8b606" />
+              <option value="03a6643b-5b36-4da7-b4b7-1889aa5deec6" />
+              <option value="c4cf40cc-c22f-4f18-b62e-1ec1463f430b" />
+            </set>
+          </value>
+        </entry>
         <entry key="0f631d98-a520-4147-a7f2-ca6098b4ad12">
           <value>
             <set>
-              <option value="3f930a86-8463-4af6-87d5-d13854911699" />
               <option value="198289dc-6be1-4381-bbda-a5fbfacc7068" />
               <option value="32a2742f-725a-4954-a44d-a0aa3c01986f" />
+              <option value="3f930a86-8463-4af6-87d5-d13854911699" />
             </set>
           </value>
         </entry>
@@ -94,13 +108,21 @@
       </map>
     </option>
     <pendingWorkingSetItems>
+      <entry key="0c1f6d6d-6d66-488a-9695-c31f0d212c1a">
+        <set>
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/network/ApIService.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/repository/AttendanceRepository.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/preferences/SessionManager.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/model/response/LoginResponse.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/preferences/UserPreferences.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/model/UserData.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/login/LoginViewModel.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/user/UserViewModel.kt" />
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/login/LoginScreen.kt" />
+        </set>
+      </entry>
       <entry key="0f631d98-a520-4147-a7f2-ca6098b4ad12">
         <set>
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/LocationUtils.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/BannerCarousel.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/requests/RequestsScreen.kt" />
           <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/MainActivity.kt" />
         </set>
       </entry>

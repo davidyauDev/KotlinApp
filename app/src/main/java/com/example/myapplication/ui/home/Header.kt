@@ -15,44 +15,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BlueHeaderWithName(userName: String, currentDate: String, modifier: Modifier = Modifier) {
+fun BlueHeaderWithName(
+    userName: String,
+    currentDate: String,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .background(Color(0xFF0051A8))
-            .height(100.dp)
+            .height(120.dp)
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 12.dp),
+                .fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    text = "Hola, ${userName.uppercase()}",
+                    text = "HOLA, ${userName.uppercase()}",
                     color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                Text(
-                    text = currentDate,
-                    color = Color(0xFFBEE1FF),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal
-                )
             }
 
             Icon(
                 imageVector = Icons.Default.Notifications,
                 contentDescription = "Notificación",
-                tint = Color.White
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
     }

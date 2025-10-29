@@ -18,6 +18,8 @@ class UserPreferences(private val context: Context) {
         val USER_TOKEN_KEY = stringPreferencesKey("USER_TOKEN")
         val USER_ID_KEY = intPreferencesKey("USER_ID")
         val USER_EMAIL_KEY = stringPreferencesKey("USER_EMAIL")
+        val USER_EMP_CODE_KEY = stringPreferencesKey("USER_EMP_CODE")
+
     }
 
     val userName: Flow<String> = context.dataStore.data
@@ -32,12 +34,16 @@ class UserPreferences(private val context: Context) {
     val userEmail: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[USER_EMAIL_KEY] ?: "" }
 
-    suspend fun saveUser(name: String, token: String, id: Int, email: String) {
+    val userEmpCode: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[USER_EMP_CODE_KEY] ?: "" }
+
+    suspend fun saveUser(name: String, token: String, id: Int, email: String, empCode: String? = null) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME_KEY] = name
             preferences[USER_TOKEN_KEY] = token
             preferences[USER_ID_KEY] = id
             preferences[USER_EMAIL_KEY] = email
+            if (empCode != null) preferences[USER_EMP_CODE_KEY] = empCode
         }
     }
 

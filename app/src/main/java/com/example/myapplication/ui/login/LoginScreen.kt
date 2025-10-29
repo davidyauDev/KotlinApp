@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,7 +29,6 @@ import com.example.myapplication.data.preferences.SessionManager
 import com.example.myapplication.data.repository.AuthRepository
 import com.example.myapplication.ui.user.UserViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
 
 @Composable
 fun LoginScreen(
@@ -42,38 +42,33 @@ fun LoginScreen(
         factory = LoginViewModelFactory(repository)
     )
 
-    var email by remember { mutableStateOf("admin@example.com") }
-    var password by remember { mutableStateOf("password") }
-    var rememberMe by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("porteria@cechriza.net") }
+    var password by remember { mutableStateOf("password123") }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
     val loginState by viewModel.loginState.collectAsState()
     val focusManager = LocalFocusManager.current
     val systemUiController = rememberSystemUiController()
-    val logoBlue = Color(0xFF22446C)
+
+    val primaryBlue = Color(0xFF22446C)
     val background = Color(0xFFF9FBF6)
+
     SideEffect {
-        systemUiController.setStatusBarColor(
-            color = background,
-            darkIcons = true
-        )
+        systemUiController.setStatusBarColor(color = background, darkIcons = true)
     }
+
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            val successState = loginState as? LoginState.Success
-            successState?.let {
-                // Always set session in memory so Home and Camera see the logged user immediately
-                userViewModel.saveUser(it.user.name, it.token, it.user.id, it.user.email)
-                SessionManager.setSession(it.user.id, it.token, it.user.name, it.user.email)
-                // Persist only if user checked "Recordarme"
-                if (rememberMe) {
-                    userViewModel.saveUser(it.user.name, it.token, it.user.id, it.user.email)
-                }
-            }
+            val state = loginState as LoginState.Success
+            userViewModel.setUserInMemory(state.user.name, state.token, state.user.id, state.user.email)
+            userViewModel.setEmpCodeInMemory(state.user.empCode)
+            SessionManager.setSession(state.user.id, state.token, state.user.name, state.user.email, state.user.empCode)
+            userViewModel.saveEmpCode(state.user.empCode)
             onLoginSuccess()
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -83,33 +78,34 @@ fun LoginScreen(
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
-
         ) {
-
-
             Image(
                 painter = painterResource(id = R.drawable.logo_cechriza),
                 contentDescription = "Logo CECHRIZA",
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(180.dp)
             )
+
             Spacer(modifier = Modifier.height(24.dp))
+
             OutlinedTextField(
                 value = email,
                 onValueChange = {
                     email = it
                     emailError = null
                 },
-                label = { Text("Nombre de Usuario") },
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null)
-                },
+                label = { Text("Correo electrónico") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 isError = emailError != null,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
             )
+
             emailError?.let {
-                Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                Text(text = it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
             }
+
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -117,65 +113,87 @@ fun LoginScreen(
                     passwordError = null
                 },
                 label = { Text("Contraseña") },
-                leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                 visualTransformation = PasswordVisualTransformation(),
                 isError = passwordError != null,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus() // ✅ Esto cierra el teclado
-                })
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
             )
+
             passwordError?.let {
-                Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                Text(text = it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = rememberMe, onCheckedChange = { rememberMe = it })
-                Text("Recordarme")
-            }
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = {
-                    var valid = true
-                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    val emailTrimmed = email.trim()
+                    var isValid = true
+
+                    if (emailTrimmed.isBlank()) {
+                        emailError = "Correo requerido"
+                        isValid = false
+                    } else if (!Patterns.EMAIL_ADDRESS.matcher(emailTrimmed).matches()) {
                         emailError = "Correo inválido"
-                        valid = false
+                        isValid = false
                     }
+
                     if (password.isBlank()) {
                         passwordError = "Contraseña requerida"
-                        valid = false
+                        isValid = false
+                    } else if (password.length < 6) {
+                        passwordError = "Mínimo 6 caracteres"
+                        isValid = false
                     }
-                    if (valid) {
-                        viewModel.login(email, password)
+
+                    if (isValid) {
+                        viewModel.login(emailTrimmed, password)
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = logoBlue),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 enabled = loginState !is LoginState.Loading
             ) {
-                Text(if (loginState is LoginState.Loading) "Iniciando..." else "Iniciar Sesión")
+                if (loginState is LoginState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text("Iniciar Sesión")
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             val errorState = loginState as? LoginState.Error
             errorState?.let {
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = it.message,
                     color = Color.Red,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
-                text = "¿Olvidó la contraseña?",
-                modifier = Modifier.clickable { /* TODO */ },
-                color = logoBlue,
+                text = "¿Olvidó su contraseña?",
+                modifier = Modifier
+                    .clickable { /* TODO: Navegar a pantalla de recuperación */ }
+                    .padding(4.dp),
+                color = primaryBlue,
                 style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline)
             )
-            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
 
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 }

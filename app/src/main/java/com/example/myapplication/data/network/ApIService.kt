@@ -30,6 +30,8 @@ interface ApiService {
         @Part("battery_percentage") batteryPercentage: RequestBody,
         @Part("signal_strength") signalStrength: RequestBody,
         @Part("network_type") networkType: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part empCode: MultipartBody.Part,
         @Part("is_internet_available") isInternetAvailable: RequestBody,
         @Part("type") type: RequestBody,
         @Part("client_id") clientId: RequestBody,

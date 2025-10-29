@@ -25,12 +25,16 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail
 
+    private val _userEmpCode = MutableStateFlow("")
+    val userEmpCode: StateFlow<String> = _userEmpCode
+
     init {
         // Initialize from in-memory SessionManager first (set at login)
         SessionManager.userName?.let { _userName.value = it }
         SessionManager.token?.let { _userToken.value = it }
         SessionManager.userId?.let { _userId.value = it }
         SessionManager.userEmail?.let { _userEmail.value = it }
+        SessionManager.empCode?.let { _userEmpCode.value = it }
 
         viewModelScope.launch {
             userPreferences.userName.collect { _userName.value = it }
@@ -44,15 +48,19 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             userPreferences.userEmail.collect { _userEmail.value = it }
         }
+        viewModelScope.launch {
+            userPreferences.userEmpCode.collect { _userEmpCode.value = it }
+        }
     }
 
-    fun saveUser(name: String, token: String, id: Int, email: String) {
+    fun saveUser(name: String, token: String, id: Int, email: String, empCode: String? = null) {
         viewModelScope.launch {
-            userPreferences.saveUser(name, token, id, email)
+            userPreferences.saveUser(name, token, id, email, empCode = empCode ?: _userEmpCode.value.ifBlank { null })
             _userName.value = name
             _userToken.value = token
             _userId.value = id
             _userEmail.value = email
+            _userEmpCode.value = empCode ?: _userEmpCode.value
         }
     }
 
@@ -62,6 +70,17 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         _userToken.value = token
         _userId.value = id
         _userEmail.value = email
+    }
+
+    fun setEmpCodeInMemory(empCode: String?) {
+        _userEmpCode.value = empCode ?: ""
+    }
+
+    fun saveEmpCode(empCode: String?) {
+        viewModelScope.launch {
+            userPreferences.saveUser(_userName.value, _userToken.value, _userId.value, _userEmail.value, empCode = empCode)
+            _userEmpCode.value = empCode ?: ""
+        }
     }
 
     fun clearUser() {

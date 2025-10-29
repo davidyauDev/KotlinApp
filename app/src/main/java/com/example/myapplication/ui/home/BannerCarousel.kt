@@ -18,9 +18,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val bannerImages  = listOf(
-    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.mTZ8DCB21JUEH44C0TPRGgHaHa%3Fpid%3DApi&sp=1761573911T85a546c9bf0260005954ff76bdfec49aea0dcc18cc01c00240286398a2fb557d",
-    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fwww.cechriza.com%2Fstatic%2Fmedia%2Fconfianza-cechriza.png&sp=1761573911Td426b76c9f2583a40cef7927df0e77aee261ea2899c375ecc60bc2f9330a19ce",
-    "https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Ftse3.mm.bing.net%2Fth%2Fid%2FOIP.mTZ8DCB21JUEH44C0TPRGgHaHa%3Fpid%3DApi&sp=1761573911T85a546c9bf0260005954ff76bdfec49aea0dcc18cc01c00240286398a2fb557d"
+        "https://www.udacity.com/blog/wp-content/uploads/2018/05/Kotlin-Udacity-Google.png",
+    "https://www.udacity.com/blog/wp-content/uploads/2018/05/Kotlin-Udacity-Google.png",
+    "https://www.udacity.com/blog/wp-content/uploads/2018/05/Kotlin-Udacity-Google.png"
     )
 
 @Composable
