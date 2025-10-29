@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -7,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.ui.Attendance.AttendanceViewModel
@@ -21,19 +21,26 @@ fun LastMarkText(viewModel: AttendanceViewModel) {
 
     val displayText = if (lastAttendance != null) {
         val date = Date(lastAttendance.timestamp)
-        val formatted = SimpleDateFormat("HH:mm (MMM/dd)", Locale.getDefault()).format(date)
-        val type = lastAttendance.type.name
+        val formatted = SimpleDateFormat("hh:mm a · dd MMM", Locale.getDefault()).format(date)
+        val type = lastAttendance.type.name.lowercase().replaceFirstChar { it.uppercase() }
         "Última marca de $type: $formatted"
     } else {
-        "Sin registers"
+        "No se ha registrado ninguna asistencia."
     }
 
-    Text(
-        text = displayText,
-        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-        modifier = Modifier
-            .padding(top = 12.dp, bottom = 8.dp)
-            .fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
+    AnimatedContent(
+        targetState = displayText,
+        label = "Última Marca Texto"
+    ) { text ->
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            ),
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+    }
 }

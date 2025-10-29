@@ -5,19 +5,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.data.local.AttendanceType
-import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.data.local.AttendanceType
 
 @Composable
 fun EntryExitButtons(
@@ -31,7 +27,7 @@ fun EntryExitButtons(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 20.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -54,16 +50,21 @@ fun EntryExitButtons(
                         color = Color.White,
                         strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                 } else {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
                         contentDescription = "Entrada",
                         tint = Color.White
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Text(text = "ENTRADA", fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "ENTRADA",
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip
+                )
             }
 
             OutlinedButton(
@@ -79,19 +80,27 @@ fun EntryExitButtons(
                         color = Color.Black,
                         strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                 } else {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Salida",
                         tint = Color.Black
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Text(text = "SALIDA", color = Color.Black, fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "SALIDA",
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip
+                )
             }
         }
+
         Spacer(modifier = Modifier.height(28.dp))
+
         Button(
             onClick = onLogout,
             colors = ButtonDefaults.buttonColors(
@@ -99,13 +108,23 @@ fun EntryExitButtons(
                 contentColor = Color.White
             ),
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth()
                 .height(48.dp),
             enabled = !isBusy
         ) {
-            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = Color.White)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Cerrar Sesión", fontSize = 14.sp)
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "Cerrar sesión",
+                tint = Color.White
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Cerrar Sesión",
+                fontSize = 14.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Clip
+            )
         }
     }
 }

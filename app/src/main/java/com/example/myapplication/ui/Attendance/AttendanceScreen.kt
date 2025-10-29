@@ -11,17 +11,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,7 +31,6 @@ import com.example.myapplication.data.local.AttendanceType
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Simple UI model for the list
 data class RegistroAsistencia(
     val tipo: AttendanceType,
     val hora: String,
@@ -49,7 +48,7 @@ fun AttendanceScreen(
     attendanceViewModel: AttendanceViewModel,
     modifier: Modifier = Modifier
 ) {
-    // Inicializar por defecto para traer el día de hoy
+    // Fecha inicial (hoy)
     val todayRange = remember {
         val cal = Calendar.getInstance()
         cal.time = Date()
@@ -65,11 +64,10 @@ fun AttendanceScreen(
 
     var selectedFilter by remember { mutableStateOf(DayFilter.CUSTOM) }
     var customRange by remember { mutableStateOf<Pair<Long, Long>?>(todayRange) }
-    // Solo fecha (día) — etiqueta que puede ser null cuando 'Todas' está activa
-    var selectedDateLabel by remember { mutableStateOf<String?>(SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first))) }
+    var selectedDateLabel by remember {
+        mutableStateOf(SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first)))
+    }
 
-    // Compute start/end range for the selected filter
-    // Note: use fresh Calendar instances when computing ranges to avoid mutation surprises
     fun rangeForFilter(filter: DayFilter): Pair<Long, Long>? {
         return when (filter) {
             DayFilter.ALL -> null
@@ -79,25 +77,19 @@ fun AttendanceScreen(
 
     val selectedRange = rangeForFilter(selectedFilter)
 
-    // Observe attendances: if a date range is selected request only that range from ViewModel
     val attendanceListLiveData = selectedRange?.let { (start, end) ->
         attendanceViewModel.getAttendancesBetween(start, end)
     } ?: attendanceViewModel.getAllAttendances()
 
     val allAttendances by attendanceListLiveData.observeAsState(initial = emptyList())
 
-    // Date picker dialog setup
     val context = LocalContext.current
-    val datePicker = remember {
-        mutableStateOf<DatePickerDialog?>(null)
-    }
 
     fun openDatePicker() {
         val c = Calendar.getInstance()
         val dialog = DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                // Cuando selecciona una fecha, filtrar solo ese día (00:00 -> 23:59:59.999)
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.YEAR, year)
                 cal.set(Calendar.MONTH, month)
@@ -117,11 +109,9 @@ fun AttendanceScreen(
             c.get(Calendar.MONTH),
             c.get(Calendar.DAY_OF_MONTH)
         )
-        datePicker.value = dialog
         dialog.show()
     }
 
-    // Map attendances to UI model, showing address if present or lat/lon otherwise
     val sdfDate = SimpleDateFormat("dd MMM", Locale("es"))
     val sdfTime = SimpleDateFormat("hh:mm a", Locale("es"))
 
@@ -129,131 +119,147 @@ fun AttendanceScreen(
         .sortedByDescending { it.timestamp }
         .map { attendance ->
             val date = Date(attendance.timestamp)
-            val fechaStr = sdfDate.format(date)
-            val horaStr = sdfTime.format(date)
-            val ubicacionStr = attendance.address?.takeIf { it.isNotBlank() }
-                ?: "Lat: ${attendance.latitude}, Lon: ${attendance.longitude}"
             RegistroAsistencia(
                 tipo = attendance.type,
-                hora = horaStr,
-                ubicacion = ubicacionStr,
-                fecha = fechaStr,
+                hora = sdfTime.format(date),
+                ubicacion = attendance.address?.takeIf { it.isNotBlank() }
+                    ?: "Lat: ${attendance.latitude}, Lon: ${attendance.longitude}",
+                fecha = sdfDate.format(date),
                 lat = attendance.latitude,
                 lon = attendance.longitude,
                 synced = attendance.synced
             )
         }
 
-    // Header label depending on filter
     val headerText = when (selectedFilter) {
         DayFilter.ALL -> "Asistencias - Todas"
-        DayFilter.CUSTOM -> selectedDateLabel?.let { "Asistencias - $it" } ?: "Asistencias"
+        DayFilter.CUSTOM -> "Asistencias - $selectedDateLabel"
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        // Primera fila: selector de fecha (botón), modo y opción 'Todas'
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    Column(modifier = modifier.fillMaxSize()) {
+
+        // 🔵 HEADER
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF0051A8))
+                .padding(vertical = 20.dp, horizontal = 16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = { openDatePicker() }) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Calendario",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = selectedDateLabel ?: "Seleccionar fecha")
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Botón para borrar/restaurar la selección al día actual
-                if (selectedFilter == DayFilter.CUSTOM) {
-                    TextButton(onClick = {
-                        // Restaurar a hoy (comportamiento 'borrar' selección)
-                        customRange = todayRange
-                        selectedDateLabel = SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first))
-                        selectedFilter = DayFilter.CUSTOM
-                    }) {
-                        Text(text = "Borrar")
-                    }
-                }
-            }
-
-            // 'Todas' para ver todos los registros
-            FilterChip(
-                selected = selectedFilter == DayFilter.ALL,
-                onClick = {
-                    if (selectedFilter == DayFilter.ALL) {
-                        // volver a personalizado con el día seleccionado (hoy)
-                        selectedFilter = DayFilter.CUSTOM
-                        customRange = todayRange
-                        selectedDateLabel = SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first))
-                    } else {
-                        selectedFilter = DayFilter.ALL
-                        customRange = null
-                        selectedDateLabel = null
-                    }
-                },
-                label = { Text(if (selectedFilter == DayFilter.ALL) "Ver personalizado" else "Todas") }
+            Text(
+                text = "Historial de Asistencias",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "$headerText (${registrosUi.size})",
+        // 🔹 CONTENIDO
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            textAlign = TextAlign.Start
-        )
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
 
-        Spacer(modifier = Modifier.height(4.dp))
+            // FILTROS
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { openDatePicker() }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Calendario",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = selectedDateLabel)
+                    }
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            if (registrosUi.isEmpty()) {
-                item {
-                    Text(
-                        text = "No hay registros.",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        textAlign = TextAlign.Center
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    if (selectedFilter == DayFilter.CUSTOM) {
+                        TextButton(onClick = {
+                            customRange = todayRange
+                            selectedDateLabel =
+                                SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first))
+                            selectedFilter = DayFilter.CUSTOM
+                        }) {
+                            Text("Borrar")
+                        }
+                    }
                 }
-            } else {
-                groupedForLazy(registrosUi)
+
+                FilterChip(
+                    selected = selectedFilter == DayFilter.ALL,
+                    onClick = {
+                        if (selectedFilter == DayFilter.ALL) {
+                            selectedFilter = DayFilter.CUSTOM
+                            customRange = todayRange
+                            selectedDateLabel =
+                                SimpleDateFormat("dd MMM yyyy", Locale("es")).format(Date(todayRange.first))
+                        } else {
+                            selectedFilter = DayFilter.ALL
+                            customRange = null
+                            selectedDateLabel = ""
+                        }
+                    },
+                    label = { Text(if (selectedFilter == DayFilter.ALL) "Ver personalizado" else "Todas") }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // TÍTULO SECCIÓN
+            Text(
+                text = "$headerText (${registrosUi.size})",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // LISTA
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                if (registrosUi.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No hay registros.",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp),
+                            textAlign = TextAlign.Center,
+                            color = Color.Gray
+                        )
+                    }
+                } else {
+                    groupedForLazy(registrosUi)
+                }
             }
         }
     }
 }
 
-// Helper to render grouped items with headers inside LazyColumn
+// 🔹 Agrupación por fecha
 private fun LazyListScope.groupedForLazy(items: List<RegistroAsistencia>) {
-    // Group by the fecha string and iterate in descending order (most recent first)
-    val grouped = items.groupBy { it.fecha }.toSortedMap(compareByDescending<String> { it })
+    val grouped = items.groupBy { it.fecha }.toSortedMap(compareByDescending { it })
     grouped.forEach { (fecha, list) ->
         item {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(vertical = 8.dp, horizontal = 12.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(vertical = 8.dp, horizontal = 12.dp)
             ) {
                 Text(
                     text = fecha,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
             }
         }
@@ -264,19 +270,20 @@ private fun LazyListScope.groupedForLazy(items: List<RegistroAsistencia>) {
     }
 }
 
+// 🔹 Tarjeta visualmente mejorada
 @Composable
 fun RegistroAsistenciaCard(registro: RegistroAsistencia) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
 
     Card(
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(3.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 4.dp)
+            .padding(vertical = 6.dp, horizontal = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -285,34 +292,28 @@ fun RegistroAsistenciaCard(registro: RegistroAsistencia) {
                 Icon(
                     imageVector = Icons.Default.Place,
                     contentDescription = null,
-                    tint = if (registro.tipo == AttendanceType.ENTRADA) Color(0xFF4A90E2) else Color(0xFF7ED321),
+                    tint = if (registro.tipo == AttendanceType.ENTRADA) Color(0xFF2196F3) else Color(0xFF4CAF50),
                     modifier = Modifier
-                        .size(18.dp)
-                        .padding(end = 4.dp)
+                        .size(20.dp)
+                        .padding(end = 6.dp)
                 )
 
                 Text(
                     text = registro.tipo.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = Color.Black
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
                     text = registro.hora,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = Color.Gray,
-                        fontSize = 13.sp
-                    )
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Text(
-                    text = if (registro.synced) "Sincronizado" else "Pendiente",
+                    text = if (registro.synced) "✔ Sincronizado" else "⚠ Pendiente",
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = if (registro.synced) Color(0xFF4CAF50) else Color(0xFFFFA000),
                         fontWeight = FontWeight.Medium
@@ -320,19 +321,19 @@ fun RegistroAsistenciaCard(registro: RegistroAsistencia) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = registro.ubicacion,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color.DarkGray,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 maxLines = 2,
-                modifier = Modifier.padding(start = 22.dp) // alineado al texto, no al ícono
+                modifier = Modifier.padding(start = 26.dp)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -340,7 +341,8 @@ fun RegistroAsistenciaCard(registro: RegistroAsistencia) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(onClick = {
-                    val uri = "geo:${registro.lat},${registro.lon}?q=${registro.lat},${registro.lon}(${Uri.encode(registro.ubicacion)})".toUri()
+                    val uri =
+                        "geo:${registro.lat},${registro.lon}?q=${registro.lat},${registro.lon}(${Uri.encode(registro.ubicacion)})".toUri()
                     val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                         setPackage("com.google.android.apps.maps")
                     }
@@ -371,4 +373,3 @@ fun RegistroAsistenciaCard(registro: RegistroAsistencia) {
         }
     }
 }
-
