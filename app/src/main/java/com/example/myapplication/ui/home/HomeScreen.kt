@@ -31,17 +31,13 @@ import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.user.UserViewModel
 import com.google.android.gms.location.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.zIndex
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import android.content.pm.PackageManager
-import android.util.Log
-import androidx.compose.material3.SnackbarResult
+import android.app.AppOpsManager
+import android.location.Location
 
 @ExperimentalGetImage
 @Composable
@@ -51,7 +47,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     val coroutineScope = rememberCoroutineScope()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
@@ -66,11 +61,13 @@ fun HomeScreen(
     val currentDate = remember { mutableStateOf("") }
     var currentAttendanceType by remember { mutableStateOf(AttendanceType.ENTRADA) }
 
-    // Estados para mostrar diálogos cuando permisos están denegados permanentemente o explicar por qué se piden
     var showAppSettingsDialog by remember { mutableStateOf(false) }
     var showRationaleDialog by remember { mutableStateOf(false) }
     var showEnableLocationDialog by remember { mutableStateOf(false) }
     var rationaleMessage by remember { mutableStateOf("") }
+    // Estado para detectar y mostrar diálogo cuando la ubicación parece ser falsa/mock
+    var showMockLocationDialog by remember { mutableStateOf(false) }
+    var mockLocationAppName by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         currentDate.value = SimpleDateFormat("EEEE dd, MMM yyyy", Locale("es")).format(Date())
@@ -101,101 +98,82 @@ fun HomeScreen(
             }
             ctx.startActivity(intent)
         } catch (_: Exception) {
-            // fallback: abrir pantalla general de ajustes
             val intent = Intent(Settings.ACTION_APPLICATION_SETTINGS).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
             ctx.startActivity(intent)
         }
     }
 
-    // Lanzador de petición de permisos múltiples
+    // Lanzador de permisos múltiples
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        // Siempre evaluar el resultado completo y actuar de forma determinista
+
         val cameraGranted = permissions[android.Manifest.permission.CAMERA] == true
-        val locationGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val locationGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
         val activity = (context as? Activity)
 
         if (cameraGranted && locationGranted) {
-            // ambos permisos concedidos -> obtener ubicación con timeout y navegar
             coroutineScope.launch {
-                // si el GPS está desactivado, sugerir al usuario activarlo
                 if (!isLocationEnabled(context)) {
                     isCheckingPermissions = false
-                    // diagnóstico: indicar por qué se muestra el diálogo
-                    Log.d("HomeScreen", "GPS desactivado: mostrando diálogo para activar ubicación (permissionLauncher)")
-                    Toast.makeText(context, "GPS desactivado: mostrando diálogo para activar ubicación", Toast.LENGTH_SHORT).show()
                     showEnableLocationDialog = true
-                    // también mostrar snackbar con acción para abrir ajustes (por si el diálogo no se ve)
-                    coroutineScope.launch {
-                        val res = snackbarHostState.showSnackbar("GPS desactivado. Actívalo para registrar tu asistencia.", "Abrir ajustes")
-                        if (res == SnackbarResult.ActionPerformed) {
-                            openLocationSettings(context)
-                        }
-                    }
+                    val res = snackbarHostState.showSnackbar("GPS desactivado. Actívalo para registrar tu asistencia.", "Abrir ajustes")
+                    if (res == SnackbarResult.ActionPerformed) openLocationSettings(context)
                     return@launch
                 }
-                 isLoadingLocation = true
-                 var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
-                 isLoadingLocation = false
-                 if (loc != null) {
+
+                // ✅ MODIFICADO: usamos la función optimizada awaitLocationForAttendance()
+                isLoadingLocation = true
+                val loc = awaitLocationForAttendance(fusedLocationClient, 8000L)
+                isLoadingLocation = false
+
+                // Detectar si la ubicación es mock/falsa
+                if (loc != null && isLocationPossiblyMocked(loc)) {
+                    // intentar identificar la app que está proveyendo mock (si es posible)
+                    mockLocationAppName = tryGetMockLocationAppName(context)
+                    showMockLocationDialog = true
+                    isCheckingPermissions = false
+                    return@launch
+                }
+
+                if (loc != null) {
                     if (!isNavigatingToCamera) {
                         isNavigatingToCamera = true
                         val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
                         navController.navigate("camera/$typePath")
                     }
                 } else {
-                    // Intentar un reintento rápido una vez
-                    Log.d("HomeScreen", "Ubicación no obtenida: intentando un reintento rápido (permissionLauncher)")
-                    coroutineScope.launch {
-                        isLoadingLocation = true
-                        snackbarHostState.showSnackbar("Reintentando obtener ubicación...")
-                        delay(1000L)
-                        val loc2 = awaitLocationWithTimeout(fusedLocationClient, 5000L)
-                        isLoadingLocation = false
-                        if (loc2 != null) {
-                            if (!isNavigatingToCamera) {
-                                isNavigatingToCamera = true
-                                val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
-                                navController.navigate("camera/$typePath")
-                            }
-                        } else {
-                            snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Intenta nuevamente.")
-                        }
-                    }
+                    snackbarHostState.showSnackbar("No se pudo obtener tu ubicación. Intenta nuevamente con GPS activado.")
                 }
                 isCheckingPermissions = false
             }
             return@rememberLauncherForActivityResult
         }
 
-        // Algún permiso no concedido -> identificar cuáles
+        // Permisos no concedidos
         val missing = mutableListOf<String>()
         if (!cameraGranted) missing.add("Cámara")
         if (!locationGranted) missing.add("Ubicación")
 
-        // Detectar si alguno fue denegado permanentemente (no mostrar rationale)
         var anyPermanentlyDenied = false
         if (activity != null) {
             val permsToCheck = listOf(android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)
             for (p in permsToCheck) {
-                val wasGranted = when (p) {
+                val granted = when (p) {
                     android.Manifest.permission.CAMERA -> cameraGranted
                     else -> locationGranted
                 }
-                if (!wasGranted) {
-                    val shouldShow = ActivityCompat.shouldShowRequestPermissionRationale(activity, p)
-                    if (!shouldShow) {
-                        anyPermanentlyDenied = true
-                        break
-                    }
+                if (!granted && !ActivityCompat.shouldShowRequestPermissionRationale(activity, p)) {
+                    anyPermanentlyDenied = true
+                    break
                 }
             }
         }
 
         if (anyPermanentlyDenied) {
-            rationaleMessage = "Permisos bloqueados: ${missing.joinToString(", ")}. Ve a Ajustes de la aplicación para habilitarlos."
+            rationaleMessage = "Permisos bloqueados: ${missing.joinToString(", ")}. Ve a Ajustes para habilitarlos."
             showAppSettingsDialog = true
         } else {
             coroutineScope.launch {
@@ -205,18 +183,14 @@ fun HomeScreen(
         isCheckingPermissions = false
     }
 
-    // Centraliza la comprobación y petición de permisos antes de navegar a cámara
+    // 🧭 Flujo central para marcar asistencia
     fun startAttendanceFlow(type: AttendanceType) {
         if (isCheckingPermissions || isNavigatingToCamera) return
         isCheckingPermissions = true
         currentAttendanceType = type
 
-        // Comprobación temprana: si GPS está apagado, pedir al usuario activarlo antes de seguir
         if (!isLocationEnabled(context)) {
             isCheckingPermissions = false
-            // diagnóstico: indicar por qué se muestra el diálogo
-            Log.d("HomeScreen", "GPS desactivado: mostrando diálogo para activar ubicación (startAttendanceFlow)")
-            Toast.makeText(context, "GPS desactivado: mostrando diálogo para activar ubicación", Toast.LENGTH_SHORT).show()
             showEnableLocationDialog = true
             coroutineScope.launch {
                 val res = snackbarHostState.showSnackbar("GPS desactivado. Actívalo para registrar tu asistencia.", "Abrir ajustes")
@@ -225,57 +199,35 @@ fun HomeScreen(
             return
         }
 
-        // Si ya tiene permisos -> obtener ubicación y navegar
         if (hasCameraPermission(context) && hasLocationPermission(context)) {
-            // si el GPS está desactivado, mostrar diálogo para abrir ajustes de ubicación
-            if (!isLocationEnabled(context)) {
-                isCheckingPermissions = false
-                // diagnóstico: indicar por qué se muestra el diálogo
-                Log.d("HomeScreen", "GPS desactivado: mostrando diálogo para activar ubicación (startAttendanceFlow)")
-                Toast.makeText(context, "GPS desactivado: mostrando diálogo para activar ubicación", Toast.LENGTH_SHORT).show()
-                showEnableLocationDialog = true
-                coroutineScope.launch {
-                    val res = snackbarHostState.showSnackbar("GPS desactivado. Actívalo para registrar tu asistencia.", "Abrir ajustes")
-                    if (res == SnackbarResult.ActionPerformed) openLocationSettings(context)
+            coroutineScope.launch {
+                isLoadingLocation = true
+                // ✅ Aquí también cambiamos a la versión optimizada
+                val loc = awaitLocationForAttendance(fusedLocationClient, 8000L)
+                isLoadingLocation = false
+
+                if (loc != null && isLocationPossiblyMocked(loc)) {
+                    mockLocationAppName = tryGetMockLocationAppName(context)
+                    showMockLocationDialog = true
+                    isCheckingPermissions = false
+                    return@launch
                 }
-                return
-            }
-             coroutineScope.launch {
-                 isLoadingLocation = true
-                 var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
-                 isLoadingLocation = false
-                 if (loc != null) {
+
+                if (loc != null) {
                     if (!isNavigatingToCamera) {
                         isNavigatingToCamera = true
                         val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
                         navController.navigate("camera/$typePath")
                     }
                 } else {
-                    // Intentar un reintento rápido una vez
-                    Log.d("HomeScreen", "Ubicación no obtenida: intentando un reintento rápido (startAttendanceFlow)")
-                    coroutineScope.launch {
-                        isLoadingLocation = true
-                        snackbarHostState.showSnackbar("Reintentando obtener ubicación...")
-                        delay(1000L)
-                        val loc2 = awaitLocationWithTimeout(fusedLocationClient, 5000L)
-                        isLoadingLocation = false
-                        if (loc2 != null) {
-                            if (!isNavigatingToCamera) {
-                                isNavigatingToCamera = true
-                                val typePath = if (currentAttendanceType == AttendanceType.ENTRADA) "ENTRADA" else "SALIDA"
-                                navController.navigate("camera/$typePath")
-                            }
-                        } else {
-                            snackbarHostState.showSnackbar("No se pudo obtener la ubicación GPS. Activa la ubicación y vuelve a intentar.")
-                        }
-                    }
+                    snackbarHostState.showSnackbar("No se pudo obtener la ubicación actual. Verifica tu GPS e inténtalo de nuevo.")
                 }
                 isCheckingPermissions = false
             }
             return
         }
 
-        // Preparar lista de permisos a pedir
+        // Si faltan permisos
         val toRequest = mutableListOf<String>()
         if (!hasCameraPermission(context)) toRequest.add(android.Manifest.permission.CAMERA)
         if (!hasLocationPermission(context)) {
@@ -283,13 +235,11 @@ fun HomeScreen(
             toRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
         }
 
-        // Si la lista está vacía (caso raro), terminar
         if (toRequest.isEmpty()) {
             isCheckingPermissions = false
             return
         }
 
-        // Comprobar si debemos mostrar rationale antes de pedir
         val activity = (context as? Activity)
         var shouldShowRationaleAny = false
         if (activity != null) {
@@ -302,35 +252,11 @@ fun HomeScreen(
         }
 
         if (shouldShowRationaleAny) {
-            rationaleMessage = "Esta app necesita acceso a la cámara y a la ubicación para registrar tu entrada/salida con foto y GPS."
+            rationaleMessage = "La app necesita acceso a cámara y ubicación para registrar tu asistencia."
             showRationaleDialog = true
-            // cuando el usuario confirma, se lanzará permissionLauncher desde el UI
         } else {
-            // Lanzar petición de permisos directamente
             permissionLauncher.launch(toRequest.toTypedArray())
         }
-    }
-
-    // Lifecycle owner para re-evaluar al volver desde ajustes
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                // Si se mostraba el diálogo de activar ubicación y ahora está activa, reanudar flujo
-                if (showEnableLocationDialog && isLocationEnabled(context) && !isCheckingPermissions && !isNavigatingToCamera) {
-                    showEnableLocationDialog = false
-                    // reintentar el flujo con el tipo guardado
-                    startAttendanceFlow(currentAttendanceType)
-                }
-                // Si se mostraba diálogo de ajustes por permisos bloqueados y ahora los permisos están concedidos, intentar continuar
-                if (showAppSettingsDialog && hasCameraPermission(context) && hasLocationPermission(context) && !isCheckingPermissions && !isNavigatingToCamera) {
-                    showAppSettingsDialog = false
-                    startAttendanceFlow(currentAttendanceType)
-                }
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -463,6 +389,38 @@ fun HomeScreen(
                 )
             }
 
+            // Diálogo para indicar que la ubicación parece ser falsa (mock)
+            if (showMockLocationDialog) {
+                AlertDialog(
+                    onDismissRequest = { showMockLocationDialog = false; isCheckingPermissions = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showMockLocationDialog = false
+                            isCheckingPermissions = false
+                            // Abrir ajustes de la app que provee mock si conocemos el paquete, sino abrir ajustes generales
+                            if (!mockLocationAppName.isNullOrEmpty()) {
+                                try {
+                                    val pkg = mockLocationAppName!!
+                                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                        data = Uri.fromParts("package", pkg, null)
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    }
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    openAppSettings(context)
+                                }
+                            } else {
+                                // abrir ajustes de desarrollador/ubicación
+                                openAppSettings(context)
+                            }
+                        }) { Text("Abrir ajustes") }
+                    },
+                    dismissButton = { TextButton(onClick = { showMockLocationDialog = false; isCheckingPermissions = false }) { Text("Cancelar") } },
+                    title = { Text("Ubicación posiblemente falsa") },
+                    text = { Text(if (mockLocationAppName != null) "Se detectó que la ubicación podría ser falsificada por ${mockLocationAppName}. Desactiva o desinstala esa aplicación y vuelve a intentarlo." else "Se detectó que la ubicación podría ser falsificada. Desactiva apps de ubicación falsa (mock) y vuelve a intentarlo.") }
+                )
+            }
+
         }
     }
 }
@@ -494,4 +452,35 @@ fun isLocationEnabled(context: Context): Boolean {
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
     return locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
             locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+}
+
+// Comprueba si la ubicación parece venir de un proveedor mock/falso.
+// Usa la API de Location (isFromMockProvider) cuando esté disponible y cae en comprobaciones alternativas.
+fun isLocationPossiblyMocked(location: Location): Boolean {
+    return try {
+        @Suppress("DEPRECATION")
+        // isFromMockProvider está deprecado pero aún útil en muchas API
+        location.isFromMockProvider
+    } catch (_: Exception) { false }
+}
+
+// Intenta encontrar el paquete de la app que tiene permiso de mock location (si es posible).
+@Suppress("DEPRECATION")
+fun tryGetMockLocationAppName(context: Context): String? {
+    return try {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val pm = context.packageManager
+        val packages = pm.getInstalledPackages(PackageManager.GET_META_DATA)
+        for (pkg in packages) {
+            try {
+                val appInfo = pkg.applicationInfo ?: continue
+                val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_MOCK_LOCATION, appInfo.uid, pkg.packageName)
+                if (mode == AppOpsManager.MODE_ALLOWED) {
+                    val label = appInfo.loadLabel(pm).toString()
+                    return "$label (${pkg.packageName})"
+                }
+            } catch (_: Throwable) { /* ignore per-app failures */ }
+        }
+        null
+    } catch (_: Exception) { null }
 }

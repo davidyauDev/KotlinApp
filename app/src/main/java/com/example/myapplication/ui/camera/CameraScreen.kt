@@ -28,7 +28,6 @@ import com.example.myapplication.data.local.AttendanceType
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
 import com.example.myapplication.ui.Attendance.AttendanceViewModel
-import com.example.myapplication.ui.home.awaitLocationWithTimeout
 import com.example.myapplication.ui.home.saveBitmapToFile
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
@@ -42,6 +41,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.asImageBitmap
+import com.example.myapplication.ui.home.awaitLocationForAttendance
 
 @androidx.camera.core.ExperimentalGetImage
 @Composable
@@ -71,12 +71,12 @@ fun CameraScreen(
                 isLoading = true
                 try {
                     // Obtener ubicación usando la versión suspendible con timeout (10s primer intento)
-                    var loc = awaitLocationWithTimeout(fusedLocationClient, 10000L)
+                    var loc = awaitLocationForAttendance(fusedLocationClient, 10000L)
                     if (loc == null) {
                         Log.d("CameraScreen", "Ubicación no obtenida en primer intento; reintentando...")
                         // reintento rápido
                         delay(1000L)
-                        loc = awaitLocationWithTimeout(fusedLocationClient, 5000L)
+                        loc = awaitLocationForAttendance(fusedLocationClient, 5000L)
                     }
 
                     if (loc != null) {
