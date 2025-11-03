@@ -19,14 +19,35 @@ import kotlin.coroutines.resume
  * @param timeoutMs Tiempo máximo para obtener la ubicación (por defecto 5s).
  * @param maxAgeMs Antigüedad máxima permitida para aceptar una ubicación del caché (por defecto 1 min).
  * @param minAccuracyMeters Precisión mínima aceptable (por defecto 50 metros).
+ * @param preferLastKnownAny Si true, intenta primero la última ubicación conocida y la devuelve sin validar edad/precisión (útil para respuestas inmediatas).
  * @return Devuelve la mejor ubicación válida o null si no se pudo obtener.
  */
 suspend fun awaitLocationForAttendance(
     client: FusedLocationProviderClient,
     timeoutMs: Long = 5000L,
     maxAgeMs: Long = 60_000L,
-    minAccuracyMeters: Float = 50f
+    minAccuracyMeters: Float = 50f,
+    preferLastKnownAny: Boolean = false
 ): Location? {
+    // Si el llamante prefiere aceptar cualquier lastKnown rápidamente, probarla primero
+    if (preferLastKnownAny) {
+        val lastAny = withTimeoutOrNull(1000L) {
+            suspendCancellableCoroutine<Location?> { cont ->
+                try {
+                    client.lastLocation
+                        .addOnSuccessListener { loc -> if (!cont.isCompleted) cont.resume(loc) }
+                        .addOnFailureListener { if (!cont.isCompleted) cont.resume(null) }
+                } catch (_: SecurityException) {
+                    if (!cont.isCompleted) cont.resume(null)
+                } catch (_: Exception) {
+                    if (!cont.isCompleted) cont.resume(null)
+                }
+                cont.invokeOnCancellation { /* sin acción */ }
+            }
+        }
+        if (lastAny != null) return lastAny
+        // si no había lastKnown, se procede a intentar obtener ubicación fresca
+    }
     //  Intentar obtener una ubicación nueva (GPS o red, alta precisión)
     val freshLocation = withTimeoutOrNull(timeoutMs) {
         suspendCancellableCoroutine<Location?> { cont ->

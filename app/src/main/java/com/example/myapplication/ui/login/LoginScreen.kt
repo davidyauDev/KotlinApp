@@ -42,8 +42,8 @@ fun LoginScreen(
         factory = LoginViewModelFactory(repository)
     )
 
-    var email by remember { mutableStateOf("porteria@cechriza.net") }
-    var password by remember { mutableStateOf("password123") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
