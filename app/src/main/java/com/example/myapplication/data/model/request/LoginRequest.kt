@@ -1,6 +1,9 @@
 package com.example.myapplication.data.model.request
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(
-    val email: String,
+    @SerializedName("emp_code")
+    val empCode: String,
     val password: String
 )

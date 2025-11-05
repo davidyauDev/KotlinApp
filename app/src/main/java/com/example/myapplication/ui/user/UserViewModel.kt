@@ -53,16 +53,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveUser(name: String, token: String, id: Int, email: String, empCode: String? = null) {
-        viewModelScope.launch {
-            userPreferences.saveUser(name, token, id, email, empCode = empCode ?: _userEmpCode.value.ifBlank { null })
-            _userName.value = name
-            _userToken.value = token
-            _userId.value = id
-            _userEmail.value = email
-            _userEmpCode.value = empCode ?: _userEmpCode.value
-        }
-    }
+
 
     // Nuevo: actualizar solo en memoria (sin persistir)
     fun setUserInMemory(name: String, token: String, id: Int, email: String) {

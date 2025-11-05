@@ -5,9 +5,9 @@ import com.example.myapplication.data.model.response.LoginResponse
 import com.example.myapplication.data.network.ApiService
 
 class AuthRepository(private val api: ApiService) {
-    suspend fun login(email: String, password: String): Result<LoginResponse> {
+    suspend fun login(empCode: String, password: String): Result<LoginResponse> {
         return try {
-            val response = api.login(LoginRequest(email, password))
+            val response = api.login(LoginRequest(empCode, password))
             if (response.isSuccessful) {
                 response.body()?.let { Result.success(it) }
                     ?: Result.failure(Exception("Respuesta vacía"))

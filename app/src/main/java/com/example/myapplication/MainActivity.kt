@@ -35,7 +35,6 @@ import kotlinx.coroutines.delay
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Alignment
-import androidx.camera.core.ExperimentalGetImage
 import androidx.work.*
 import com.example.myapplication.work.SyncAttendancesWorker
 import java.util.concurrent.TimeUnit
@@ -91,7 +90,6 @@ fun SplashScreen(onReady: (Boolean) -> Unit, userPreferences: UserPreferences) {
     }
 }
 
-@androidx.camera.core.ExperimentalGetImage
 @Composable
 fun AppNavigation(navController: NavHostController) {
     val context = LocalContext.current.applicationContext as Application
@@ -132,8 +130,7 @@ fun AppNavigation(navController: NavHostController) {
             val type = if (typeString == "ENTRADA") AttendanceType.ENTRADA else AttendanceType.SALIDA
             CameraScreen(
                 navController = navController,
-                attendanceType = type,
-                attendanceViewModel = attendanceViewModel
+                attendanceType = type
             )
         }
     }
@@ -169,7 +166,6 @@ fun BottomNavScreen(navController: NavHostController, attendanceViewModel: Atten
     }
 }
 
-@androidx.camera.core.ExperimentalGetImage
 @Composable
 fun ContentScreen(
     selectedIndex: Int,
@@ -182,5 +178,4 @@ fun ContentScreen(
         1 -> AttendanceScreen(attendanceViewModel = attendanceViewModel, modifier = modifier)
         2 -> RequestsScreen(modifier = modifier)
     }
-
 }

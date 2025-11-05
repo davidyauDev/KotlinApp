@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.login
 
-import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,9 +41,10 @@ fun LoginScreen(
         factory = LoginViewModelFactory(repository)
     )
 
-    var email by remember { mutableStateOf("") }
+    // Use empCode instead of email for login
+    var empCode by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf<String?>(null) }
+    var empCodeError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
     val loginState by viewModel.loginState.collectAsState()
@@ -87,20 +87,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Employee code input (used instead of email)
             OutlinedTextField(
-                value = email,
+                value = empCode,
                 onValueChange = {
-                    email = it
-                    emailError = null
+                    empCode = it
+                    empCodeError = null
                 },
-                label = { Text("Correo electrónico") },
+                label = { Text("Código de empleado") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                isError = emailError != null,
+                isError = empCodeError != null,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
             )
 
-            emailError?.let {
+            empCodeError?.let {
                 Text(text = it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
             }
 
@@ -129,14 +130,11 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    val emailTrimmed = email.trim()
+                    val empCodeTrimmed = empCode.trim()
                     var isValid = true
 
-                    if (emailTrimmed.isBlank()) {
-                        emailError = "Correo requerido"
-                        isValid = false
-                    } else if (!Patterns.EMAIL_ADDRESS.matcher(emailTrimmed).matches()) {
-                        emailError = "Correo inválido"
+                    if (empCodeTrimmed.isBlank()) {
+                        empCodeError = "Código requerido"
                         isValid = false
                     }
 
@@ -149,7 +147,8 @@ fun LoginScreen(
                     }
 
                     if (isValid) {
-                        viewModel.login(emailTrimmed, password)
+                        // pass emp code to login
+                        viewModel.login(empCodeTrimmed, password)
                     }
                 },
                 modifier = Modifier

@@ -27,7 +27,6 @@ import com.example.myapplication.data.local.AttendanceDatabase
 import com.example.myapplication.data.local.AttendanceType
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
-import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.home.saveBitmapToFile
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
@@ -41,14 +40,15 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.asImageBitmap
-import com.example.myapplication.ui.home.awaitLocationForAttendance
+import com.example.myapplication.ui.home.awaitLocationForAttendanceImproved
+import com.example.myapplication.ui.home.LocationResult
+import com.example.myapplication.data.local.LocationDatabase
 
 @androidx.camera.core.ExperimentalGetImage
 @Composable
 fun CameraScreen(
     navController: NavController,
-    attendanceType: AttendanceType,
-    attendanceViewModel: AttendanceViewModel
+    attendanceType: AttendanceType
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -63,6 +63,7 @@ fun CameraScreen(
         )
     }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val locationDao = remember { LocationDatabase.getDatabase(context).locationDao() }
     AttendanceCameraView(
         onCaptureImage = { bitmap ->
             val uri = saveBitmapToFile(context, bitmap)
@@ -70,28 +71,35 @@ fun CameraScreen(
             coroutineScope.launch {
                 isLoading = true
                 try {
-                    // Obtener ubicación usando la versión suspendible con timeout (10s primer intento)
-                    var loc = awaitLocationForAttendance(fusedLocationClient, 10000L)
-                    if (loc == null) {
-                        Log.d("CameraScreen", "Ubicación no obtenida en primer intento; reintentando...")
+                    // Obtener ubicación usando la versión mejorada que devuelve LocationResult
+                    var loc: android.location.Location? = null
+
+                    var result = awaitLocationForAttendanceImproved(fusedLocationClient, context, locationDao, 10000L)
+                    if (result is LocationResult.Success) {
+                        loc = result.location
+                    } else {
+                        Log.d("CameraScreen", "Ubicación no obtenida en primer intento; reintentando... (reason=${(result as? LocationResult.Error)?.reason})")
                         // reintento rápido
                         delay(1000L)
-                        loc = awaitLocationForAttendance(fusedLocationClient, 5000L)
+                        result = awaitLocationForAttendanceImproved(fusedLocationClient, context, locationDao, 5000L)
+                        if (result is LocationResult.Success) {
+                            loc = result.location
+                        }
                     }
 
                     if (loc != null) {
-                        val result = attendanceRepository.saveAttendance(
+                        val saveResult = attendanceRepository.saveAttendance(
                             latitude = loc.latitude,
                             longitude = loc.longitude,
                             type = attendanceType,
                             photo = bitmap
                         )
 
-                        if (result.isSuccess) {
+                        if (saveResult.isSuccess) {
                             Toast.makeText(context, "🎉 Asistencia registrada con éxito", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         } else {
-                            val error = result.exceptionOrNull()
+                            val error = saveResult.exceptionOrNull()
                             Log.e("AttendanceError", "Error al registrar asistencia", error)
                             Toast.makeText(
                                 context,

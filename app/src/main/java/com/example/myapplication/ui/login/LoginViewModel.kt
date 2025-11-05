@@ -19,10 +19,10 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
-    fun login(email: String, password: String) {
+    fun login(empCode: String, password: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading
-            val result = repository.login(email, password)
+            val result = repository.login(empCode, password)
             result.onSuccess { response ->
                 val user = UserData(
                     id = response.user.id,
