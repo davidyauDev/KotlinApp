@@ -1,8 +1,8 @@
 package com.example.myapplication.data.repository
 
-import com.example.myapplication.data.model.request.LoginRequest
-import com.example.myapplication.data.model.response.LoginResponse
-import com.example.myapplication.data.network.ApiService
+import com.example.myapplication.data.remote.dto.request.LoginRequest
+import com.example.myapplication.data.remote.dto.response.LoginResponse
+import com.example.myapplication.data.remote.network.ApiService
 
 class AuthRepository(private val api: ApiService) {
     suspend fun login(empCode: String, password: String): Result<LoginResponse> {

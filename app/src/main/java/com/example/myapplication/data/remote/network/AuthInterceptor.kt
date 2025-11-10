@@ -1,4 +1,4 @@
-package com.example.myapplication.data.network
+package com.example.myapplication.data.remote.network
 
 
 import okhttp3.Interceptor

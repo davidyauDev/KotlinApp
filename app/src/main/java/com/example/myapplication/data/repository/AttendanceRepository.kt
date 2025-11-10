@@ -2,22 +2,18 @@ package com.example.myapplication.data.repository
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.location.Geocoder
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.BatteryManager
 import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LiveData
-import com.example.myapplication.data.local.Attendance
-import com.example.myapplication.data.local.AttendanceDao
-import com.example.myapplication.data.local.AttendanceType
-import com.example.myapplication.data.model.response.AttendanceResponse
-import com.example.myapplication.data.network.RetrofitClient
+import com.example.myapplication.data.local.entity.Attendance
+import com.example.myapplication.data.local.dao.AttendanceDao
+import com.example.myapplication.data.local.entity.AttendanceType
+import com.example.myapplication.data.remote.dto.response.AttendanceResponse
+import com.example.myapplication.data.remote.network.RetrofitClient
 import com.example.myapplication.data.preferences.SessionManager
 import com.example.myapplication.data.preferences.UserPreferences
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.myapplication.data.util.DeviceInfoProvider
+import com.example.myapplication.data.util.LocationProvider
 import kotlinx.coroutines.flow.first
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -27,13 +23,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
-import java.util.Locale
 import java.util.UUID
 
 class AttendanceRepository(
     private val userPreferences: UserPreferences,
     private val context: Context,
-    private val dao: AttendanceDao
+    private val dao: AttendanceDao,
+    private val deviceInfo: DeviceInfoProvider = DeviceInfoProvider(context),
+    private val locationProvider: LocationProvider = LocationProvider(context)
 ) {
 
     suspend fun saveAttendance(
@@ -43,7 +40,10 @@ class AttendanceRepository(
         photo: Bitmap
     ): Result<AttendanceResponse> {
         return try {
-            // Prefer in-memory session (set at login) to avoid "usuario no logueado" inmediatamente despues login
+            val batteryPercentage = deviceInfo.getBatteryPercentage()
+            val networkType = deviceInfo.getNetworkType()
+            val isInternetAvailable = deviceInfo.isInternetAvailable()
+
             val userId = SessionManager.userId ?: userPreferences.userId.first()
             if (userId == 0) return Result.failure(Exception("Usuario no logueado"))
 
@@ -57,9 +57,6 @@ class AttendanceRepository(
                 photo.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
 
-            val batteryPercentage = getBatteryPercentage()
-            val networkType = getNetworkType()
-            val isInternetAvailable = isInternetAvailable()
 
             // Generar externalId para idempotencia
             val externalId = UUID.randomUUID().toString()
@@ -89,7 +86,7 @@ class AttendanceRepository(
             // Intentar obtener dirección si hay internet (reverse geocode)
             var resolvedAddress: String? = null
             if (isInternetAvailable) {
-                val address = tryReverseGeocode(latitude, longitude)
+                val address = locationProvider.reverseGeocode(latitude, longitude)
                 if (!address.isNullOrBlank()) {
                     resolvedAddress = address
                     dao.updateAddress(insertedId.toInt(), address)
@@ -97,28 +94,42 @@ class AttendanceRepository(
             }
 
             // Decide what address to send (prefer resolvedAddress, otherwise fallback string built at class-level)
-            val addressToSend: String = resolvedAddress ?: buildFallbackAddress(latitude, longitude)
+            val addressToSend: String =
+                resolvedAddress ?: deviceInfo.buildFallbackAddress(latitude, longitude)
 
             // Intentar enviar al servidor inmediatamente si hay internet
             if (isInternetAvailable) {
                 val api = RetrofitClient.apiWithToken { token }
 
                 // Helpers that accept nullable strings for address
-                fun String?.toPart(): RequestBody = (this ?: "").toRequestBody("text/plain".toMediaType())
-                fun Int.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                fun Long.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                fun Double.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                fun Boolean.toPart(): RequestBody = (if (this) "1" else "0").toRequestBody("text/plain".toMediaType())
+                fun String?.toPart(): RequestBody =
+                    (this ?: "").toRequestBody("text/plain".toMediaType())
+
+                fun Int.toPart(): RequestBody =
+                    this.toString().toRequestBody("text/plain".toMediaType())
+
+                fun Long.toPart(): RequestBody =
+                    this.toString().toRequestBody("text/plain".toMediaType())
+
+                fun Double.toPart(): RequestBody =
+                    this.toString().toRequestBody("text/plain".toMediaType())
+
+                fun Boolean.toPart(): RequestBody =
+                    (if (this) "1" else "0").toRequestBody("text/plain".toMediaType())
 
                 // empCode: prefer in-memory SessionManager, otherwise read from DataStore
                 val empCodeValue = SessionManager.empCode ?: userPreferences.userEmpCode.first()
                 val empCodePart = MultipartBody.Part.createFormData("emp_code", empCodeValue)
 
                 val photoRequestBody = photoFile.asRequestBody("image/jpeg".toMediaType())
-                val photoPart = MultipartBody.Part.createFormData("photo", photoFile.name, photoRequestBody)
+                val photoPart =
+                    MultipartBody.Part.createFormData("photo", photoFile.name, photoRequestBody)
 
                 // Debug log to verify what we're sending (emp_code, address, photo)
-                Log.d("ATT_SEND", "Immediate send -> emp_code='${empCodeValue}', address='${addressToSend}', userId='${userId}', externalId='${externalId}', photoExists=${photoFile.exists()}")
+                Log.d(
+                    "ATT_SEND",
+                    "Immediate send -> emp_code='${empCodeValue}', address='${addressToSend}', userId='${userId}', externalId='${externalId}', photoExists=${photoFile.exists()}"
+                )
 
                 val response: Response<AttendanceResponse> = api.sendAttendance(
                     userId.toPart(),
@@ -147,15 +158,18 @@ class AttendanceRepository(
                     response.body()?.serverId?.let { serverId ->
                         try {
                             dao.updateServerId(insertedId.toInt(), serverId)
-                        } catch (_: Exception) { }
+                        } catch (_: Exception) {
+                        }
                     }
 
                     // Borrar foto local para ahorrar espacio
                     try {
                         if (photoFile.exists()) photoFile.delete()
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
 
-                    response.body()?.let { Result.success(it) } ?: Result.failure(Exception("Respuesta vacía"))
+                    response.body()?.let { Result.success(it) }
+                        ?: Result.failure(Exception("Respuesta vacía"))
                 } else {
                     // incrementar contador de reintentos
                     dao.incrementRetryCount(insertedId.toInt())
@@ -174,26 +188,13 @@ class AttendanceRepository(
         }
     }
 
-    private suspend fun tryReverseGeocode(lat: Double, lon: Double): String? {
-        return try {
-            withContext(Dispatchers.IO) {
-                val geocoder = Geocoder(context, Locale.getDefault())
-                val list = geocoder.getFromLocation(lat, lon, 1)
-                if (!list.isNullOrEmpty()) list[0].getAddressLine(0) else null
-            }
-        } catch (e: Exception) {
-            Log.w("GEOCODER", "Reverse geocode failed: ${e.message}")
-            null
-        }
-    }
 
     suspend fun syncUnsyncedAttendances(): List<Pair<Int, Boolean>> {
-        // Retorna lista de pares (attendanceId, success)
         val results = mutableListOf<Pair<Int, Boolean>>()
         try {
             val token = SessionManager.token ?: userPreferences.userToken.first()
             if (token.isNullOrBlank()) return results
-            if (!isInternetAvailable()) return results
+            if (!deviceInfo.isInternetAvailable()) return results
 
             val api = RetrofitClient.apiWithToken { token }
 
@@ -203,7 +204,7 @@ class AttendanceRepository(
                     // si no tiene address, intentar geocode antes de enviar
                     var addressCandidate: String? = null
                     if (att.address.isNullOrBlank()) {
-                        val address = tryReverseGeocode(att.latitude, att.longitude)
+                        val address = locationProvider.reverseGeocode(att.latitude, att.longitude)
                         if (!address.isNullOrBlank()) {
                             addressCandidate = address
                             dao.updateAddress(att.id, address)
@@ -214,26 +215,49 @@ class AttendanceRepository(
 
                     val photoFile = att.photoPath?.let { File(it) }
                     val photoPart = if (photoFile != null && photoFile.exists()) {
-                        MultipartBody.Part.createFormData("photo", photoFile.name, photoFile.asRequestBody("image/jpeg".toMediaType()))
+                        MultipartBody.Part.createFormData(
+                            "photo",
+                            photoFile.name,
+                            photoFile.asRequestBody("image/jpeg".toMediaType())
+                        )
                     } else null
 
-                    fun String?.toPart(): RequestBody = (this ?: "").toRequestBody("text/plain".toMediaType())
-                    fun Int.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                    fun Long.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                    fun Double.toPart(): RequestBody = this.toString().toRequestBody("text/plain".toMediaType())
-                    fun Boolean.toPart(): RequestBody = (if (this) "1" else "0").toRequestBody("text/plain".toMediaType())
+                    fun String?.toPart(): RequestBody =
+                        (this ?: "").toRequestBody("text/plain".toMediaType())
+
+                    fun Int.toPart(): RequestBody =
+                        this.toString().toRequestBody("text/plain".toMediaType())
+
+                    fun Long.toPart(): RequestBody =
+                        this.toString().toRequestBody("text/plain".toMediaType())
+
+                    fun Double.toPart(): RequestBody =
+                        this.toString().toRequestBody("text/plain".toMediaType())
+
+                    fun Boolean.toPart(): RequestBody =
+                        (if (this) "1" else "0").toRequestBody("text/plain".toMediaType())
 
                     // Construir externalId part
                     val externalIdPart = att.externalId.toPart()
 
                     // empCode para sincronización: preferir SessionManager, fallback a DataStore
-                    val empCodeValueSync = SessionManager.empCode ?: userPreferences.userEmpCode.first()
-                    val empCodePartSync = MultipartBody.Part.createFormData("emp_code", empCodeValueSync)
+                    val empCodeValueSync =
+                        SessionManager.empCode ?: userPreferences.userEmpCode.first()
+                    val empCodePartSync =
+                        MultipartBody.Part.createFormData("emp_code", empCodeValueSync)
 
                     // Use addressCandidate (could be null) — we'll build fallback inline when needed
 
                     val callResponse = if (photoPart != null) {
-                        Log.d("ATT_SEND", "Sync send -> emp_code='${empCodeValueSync}', address='${addressCandidate ?: buildFallbackAddress(att.latitude, att.longitude)}', attendanceId=${att.id}, photoExists=${photoFile?.exists()}")
+                        Log.d(
+                            "ATT_SEND",
+                            "Sync send -> emp_code='${empCodeValueSync}', address='${
+                                addressCandidate ?: deviceInfo.buildFallbackAddress(
+                                    att.latitude,
+                                    att.longitude
+                                )
+                            }', attendanceId=${att.id}, photoExists=${photoFile?.exists()}"
+                        )
                         api.sendAttendance(
                             userPreferences.userId.first().toPart(),
                             att.timestamp.toPart(),
@@ -245,7 +269,10 @@ class AttendanceRepository(
                             att.signalStrength.toPart(),
                             att.networkType.toPart(),
                             // If reverse-geocode failed earlier, use fallback coordinates string so server never gets null
-                            (addressCandidate ?: buildFallbackAddress(att.latitude, att.longitude)).toPart(),
+                            (addressCandidate ?: deviceInfo.buildFallbackAddress(
+                                att.latitude,
+                                att.longitude
+                            )).toPart(),
                             // emp_code
                             empCodePartSync,
                             att.isInternetAvailable.toPart(),
@@ -254,7 +281,15 @@ class AttendanceRepository(
                             photoPart
                         )
                     } else {
-                        Log.d("ATT_SEND", "Sync send (no photo) -> emp_code='${empCodeValueSync}', address='${addressCandidate ?: buildFallbackAddress(att.latitude, att.longitude)}', attendanceId=${att.id}, photoExists=false")
+                        Log.d(
+                            "ATT_SEND",
+                            "Sync send (no photo) -> emp_code='${empCodeValueSync}', address='${
+                                addressCandidate ?: deviceInfo.buildFallbackAddress(
+                                    att.latitude,
+                                    att.longitude
+                                )
+                            }', attendanceId=${att.id}, photoExists=false"
+                        )
                         val empty = "".toRequestBody("text/plain".toMediaType())
                         val emptyPart = MultipartBody.Part.createFormData("photo", "", empty)
                         api.sendAttendance(
@@ -267,7 +302,10 @@ class AttendanceRepository(
                             att.batteryPercentage.toPart(),
                             att.signalStrength.toPart(),
                             att.networkType.toPart(),
-                            (addressCandidate ?: buildFallbackAddress(att.latitude, att.longitude)).toPart(),
+                            (addressCandidate ?: deviceInfo.buildFallbackAddress(
+                                att.latitude,
+                                att.longitude
+                            )).toPart(),
                             // emp_code
                             empCodePartSync,
                             att.isInternetAvailable.toPart(),
@@ -285,12 +323,14 @@ class AttendanceRepository(
                         try {
                             val body = callResponse.body()
                             body?.serverId?.let { sid -> dao.updateServerId(att.id, sid) }
-                        } catch (_: Exception) { }
+                        } catch (_: Exception) {
+                        }
 
                         // Borrar la foto local si existe
                         try {
                             photoFile?.let { f -> if (f.exists()) f.delete() }
-                        } catch (_: Exception) { }
+                        } catch (_: Exception) {
+                        }
 
                         results.add(Pair(att.id, true))
                     } else {
@@ -312,34 +352,6 @@ class AttendanceRepository(
         return results
     }
 
-    private fun getBatteryPercentage(): Int {
-        val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-        return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-    }
-
-    private fun getNetworkType(): String {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = cm.activeNetwork ?: return "SIN_CONEXION"
-        val capabilities = cm.getNetworkCapabilities(network) ?: return "SIN_CONEXION"
-
-        return when {
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "WIFI"
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "MOVIL"
-            else -> "OTRO"
-        }
-    }
-
-    private fun isInternetAvailable(): Boolean {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = cm.activeNetwork ?: return false
-        val capabilities = cm.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    }
-
-    // Helper to build a readable fallback address from coordinates
-    private fun buildFallbackAddress(lat: Double, lon: Double): String {
-        return "Coordenadas: ${"%.6f".format(lat)}, ${"%.6f".format(lon)}"
-    }
 
     fun getAttendancesBetween(start: Long, end: Long): LiveData<List<Attendance>> =
         dao.getAttendancesBetween(start, end)

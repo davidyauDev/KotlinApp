@@ -3,7 +3,7 @@ package com.example.myapplication.work
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.myapplication.data.local.AttendanceDatabase
+import com.example.myapplication.data.local.database.AttendanceDatabase
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
 

@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
-import com.example.myapplication.data.network.RetrofitClient
+import com.example.myapplication.data.remote.network.RetrofitClient
 import com.example.myapplication.data.preferences.SessionManager
 import com.example.myapplication.data.repository.AuthRepository
 import com.example.myapplication.ui.user.UserViewModel

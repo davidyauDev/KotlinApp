@@ -1,8 +1,7 @@
-package com.example.myapplication.navigation
+package com.example.myapplication.ui.navigation
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.data.model.NavItem
+import com.example.myapplication.data.local.model.NavItem
 
 @Composable
 fun BottomNavBar(

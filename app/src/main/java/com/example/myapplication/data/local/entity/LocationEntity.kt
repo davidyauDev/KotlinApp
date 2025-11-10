@@ -1,4 +1,4 @@
-package com.example.myapplication.data.local
+package com.example.myapplication.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -12,4 +12,3 @@ data class LocationEntity(
     @ColumnInfo(name = "accuracy") val accuracy: Float,
     @ColumnInfo(name = "timestamp") val timestamp: Long
 )
-

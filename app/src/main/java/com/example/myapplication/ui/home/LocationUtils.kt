@@ -11,8 +11,8 @@ import android.location.LocationManager
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
-import com.example.myapplication.data.local.LocationDao
-import com.example.myapplication.data.local.LocationEntity
+import com.example.myapplication.data.local.dao.LocationDao
+import com.example.myapplication.data.local.entity.LocationEntity
 
 
 sealed class LocationResult {

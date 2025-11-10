@@ -26,7 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.data.local.entity.AttendanceType
 import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.user.UserViewModel
 import com.google.android.gms.location.*
@@ -39,7 +39,7 @@ import android.content.pm.PackageManager
 import android.app.AppOpsManager
 import android.location.Location
 import android.util.Log
-import com.example.myapplication.data.local.LocationDatabase
+import com.example.myapplication.data.local.database.LocationDatabase
 
 // --- Utilities moved to top so HomeScreen can reference them reliably ---
 @Suppress("unused")

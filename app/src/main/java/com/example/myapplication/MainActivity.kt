@@ -18,12 +18,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.data.local.AttendanceDatabase
-import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.data.local.database.AttendanceDatabase
+import com.example.myapplication.data.local.entity.AttendanceType
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
-import com.example.myapplication.navigation.BottomNavBar
-import com.example.myapplication.navigation.NavItemList
+import com.example.myapplication.ui.navigation.BottomNavBar
+import com.example.myapplication.ui.navigation.NavItemList
 import com.example.myapplication.ui.Attendance.AttendanceScreen
 import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.Attendance.AttendanceViewModelFactory

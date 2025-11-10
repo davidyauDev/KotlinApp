@@ -23,8 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import com.example.myapplication.data.local.AttendanceDatabase
-import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.data.local.database.AttendanceDatabase
+import com.example.myapplication.data.local.entity.AttendanceType
 import com.example.myapplication.data.preferences.UserPreferences
 import com.example.myapplication.data.repository.AttendanceRepository
 import com.example.myapplication.ui.home.saveBitmapToFile
@@ -42,7 +42,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.asImageBitmap
 import com.example.myapplication.ui.home.awaitLocationForAttendanceImproved
 import com.example.myapplication.ui.home.LocationResult
-import com.example.myapplication.data.local.LocationDatabase
+import com.example.myapplication.data.local.database.LocationDatabase
 
 @androidx.camera.core.ExperimentalGetImage
 @Composable

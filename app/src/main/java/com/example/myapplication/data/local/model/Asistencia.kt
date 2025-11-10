@@ -1,4 +1,4 @@
-package com.example.myapplication.data.model
+package com.example.myapplication.data.local.model
 
 data class Asistencia(
     val fecha: String, // ej. "9 oct"

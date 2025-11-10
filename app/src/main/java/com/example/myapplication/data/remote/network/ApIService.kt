@@ -1,9 +1,9 @@
-package com.example.myapplication.data.network
+package com.example.myapplication.data.remote.network
 
-import com.example.myapplication.data.model.request.LoginRequest
-import com.example.myapplication.data.model.response.AttendanceResponse
-import com.example.myapplication.data.model.response.BannerResponse
-import com.example.myapplication.data.model.response.LoginResponse
+import com.example.myapplication.data.remote.dto.request.LoginRequest
+import com.example.myapplication.data.remote.dto.response.AttendanceResponse
+import com.example.myapplication.data.remote.dto.response.BannerResponse
+import com.example.myapplication.data.remote.dto.response.LoginResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body

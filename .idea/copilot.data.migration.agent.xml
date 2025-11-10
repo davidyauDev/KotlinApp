@@ -6,6 +6,7 @@
       <option value="0c1f6d6d-6d66-488a-9695-c31f0d212c1a" />
       <option value="0d3be764-df1d-4b7d-8706-34733d98d88f" />
       <option value="0f631d98-a520-4147-a7f2-ca6098b4ad12" />
+      <option value="1bbeb840-1677-48b1-ad03-3b8fce94f91d" />
       <option value="259d36fe-e65c-4bdf-a489-5da4f0e36151" />
       <option value="2b1e399e-09d3-419a-95e2-7ffdbee63a4f" />
       <option value="4472144b-08d5-4854-a51f-aba403b571e1" />
@@ -172,17 +173,7 @@
       <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
       <entry key="afd2d191-9400-4aae-8ed2-7883f7073ade" />
-      <entry key="f969b42f-d222-42dd-a76f-a59de10361f1">
-        <set>
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/camera/CameraScreen.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/MainActivity.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/HomeScreen.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/local/LocationEntity.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/local/LocationDao.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/data/local/LocationDatabase.kt" />
-          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/LocationUtils.kt" />
-        </set>
-      </entry>
+      <entry key="f969b42f-d222-42dd-a76f-a59de10361f1" />
       <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699" />
     </pendingWorkingSetItems>
   </component>

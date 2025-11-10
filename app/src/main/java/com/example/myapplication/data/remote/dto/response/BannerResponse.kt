@@ -1,4 +1,4 @@
-package com.example.myapplication.data.model.response
+package com.example.myapplication.data.remote.dto.response
 
 data class BannerResponse(
     val data: List<Banner>

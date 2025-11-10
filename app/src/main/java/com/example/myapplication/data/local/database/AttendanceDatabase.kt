@@ -1,9 +1,11 @@
-package com.example.myapplication.data.local
+package com.example.myapplication.data.local.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.myapplication.data.local.entity.Attendance
+import com.example.myapplication.data.local.dao.AttendanceDao
 
 @Database(entities = [Attendance::class], version = 2, exportSchema = false)
 abstract class AttendanceDatabase : RoomDatabase() {

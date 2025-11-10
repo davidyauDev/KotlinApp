@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.data.local.entity.AttendanceType
 
 @Composable
 fun EntryExitButtons(

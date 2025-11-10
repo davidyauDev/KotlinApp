@@ -1,4 +1,4 @@
-package com.example.myapplication.data.model.request
+package com.example.myapplication.data.remote.dto.request
 
 data class AttendanceRequest (
     val user_id: Int,

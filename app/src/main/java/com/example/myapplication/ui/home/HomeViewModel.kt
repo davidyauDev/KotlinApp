@@ -3,7 +3,7 @@ package com.example.myapplication.ui.home
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.local.AttendanceType
+import com.example.myapplication.data.local.entity.AttendanceType
 import com.example.myapplication.data.repository.AttendanceRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
