@@ -29,6 +29,7 @@ import com.example.myapplication.ui.Attendance.AttendanceViewModel
 import com.example.myapplication.ui.Attendance.AttendanceViewModelFactory
 import com.example.myapplication.ui.camera.CameraScreen
 import com.example.myapplication.ui.home.HomeScreen
+import com.example.myapplication.ui.home.RoutesScreen
 import com.example.myapplication.ui.login.LoginScreen
 import com.example.myapplication.ui.requests.RequestsScreen
 import kotlinx.coroutines.delay
@@ -123,6 +124,11 @@ fun AppNavigation(navController: NavHostController) {
 
         composable("main") {
             BottomNavScreen(navController = navController, attendanceViewModel = attendanceViewModel)
+        }
+
+        // Pantalla para mostrar rutas del día (navegable desde Drawer)
+        composable("routes") {
+            RoutesScreen(navController = navController)
         }
 
         composable("camera/{attendanceType}") { backStackEntry ->

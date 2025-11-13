@@ -7,6 +7,7 @@
       <option value="0d3be764-df1d-4b7d-8706-34733d98d88f" />
       <option value="0f631d98-a520-4147-a7f2-ca6098b4ad12" />
       <option value="1bbeb840-1677-48b1-ad03-3b8fce94f91d" />
+      <option value="1fddcc36-0229-4978-9bad-bc90d714a2ff" />
       <option value="259d36fe-e65c-4bdf-a489-5da4f0e36151" />
       <option value="2b1e399e-09d3-419a-95e2-7ffdbee63a4f" />
       <option value="4472144b-08d5-4854-a51f-aba403b571e1" />
@@ -14,9 +15,13 @@
       <option value="55fcaff8-c8e9-416a-bc3e-7b797b181769" />
       <option value="563592d0-18a4-4c40-856c-e4a394c397df" />
       <option value="5f226e9d-862d-4b41-808e-15d64737dcc0" />
+      <option value="72a1a331-53e2-4178-956b-efb698bc5289" />
+      <option value="8cbc0884-3348-4a73-a1e4-6c734f78e6ad" />
       <option value="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <option value="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
       <option value="afd2d191-9400-4aae-8ed2-7883f7073ade" />
+      <option value="cb34b1c2-c715-4692-9308-5bb52d3a7d2b" />
+      <option value="cbf32b16-4da4-4107-9dc1-f7ca6a4a6edd" />
       <option value="f969b42f-d222-42dd-a76f-a59de10361f1" />
       <option value="f9f39a16-9c35-44fb-997f-5e2cc8854699" />
     </option>
@@ -47,6 +52,30 @@
               <option value="198289dc-6be1-4381-bbda-a5fbfacc7068" />
               <option value="32a2742f-725a-4954-a44d-a0aa3c01986f" />
               <option value="3f930a86-8463-4af6-87d5-d13854911699" />
+            </set>
+          </value>
+        </entry>
+        <entry key="1bbeb840-1677-48b1-ad03-3b8fce94f91d">
+          <value>
+            <set>
+              <option value="436e222f-9237-48c5-825b-0e592d5a6891" />
+              <option value="69edfab8-4014-4712-a5e5-caa9412ca0b6" />
+              <option value="7863876f-d88b-4fbb-bd81-1498bca1df21" />
+              <option value="b9db1f48-5cdf-4956-af84-c5affbf8a1c9" />
+              <option value="cb8f7b32-22f7-4e65-a4a0-6f58b7ac37ab" />
+              <option value="ed36a91d-4c94-4b4e-8b5f-b0c155dc1952" />
+            </set>
+          </value>
+        </entry>
+        <entry key="1fddcc36-0229-4978-9bad-bc90d714a2ff">
+          <value>
+            <set>
+              <option value="31d55f27-87db-44e4-8ba3-266d87ff539b" />
+              <option value="29500ff4-f08e-4a88-9c67-02756ad8ca35" />
+              <option value="092c5495-1ef0-418f-99bd-12f83959a13e" />
+              <option value="1e09fe76-db33-4790-9a5c-aa5510e90507" />
+              <option value="d6554f78-7ed2-4d89-a3a9-9dfe7a007645" />
+              <option value="c74d2cd9-fe9a-432b-9cb0-288ffa0fa880" />
             </set>
           </value>
         </entry>
@@ -102,6 +131,30 @@
             </set>
           </value>
         </entry>
+        <entry key="72a1a331-53e2-4178-956b-efb698bc5289">
+          <value>
+            <set>
+              <option value="03c04b86-cc9b-4c54-a678-886c726a2f14" />
+            </set>
+          </value>
+        </entry>
+        <entry key="8cbc0884-3348-4a73-a1e4-6c734f78e6ad">
+          <value>
+            <set>
+              <option value="286da65e-8feb-48a9-b744-5a48b57b9293" />
+              <option value="39b82a86-4484-4332-a614-167e4d397c32" />
+              <option value="57ff3d6a-0608-48f1-aa2b-4beddb9aa267" />
+              <option value="65b8f0ae-4044-499e-a5db-6ca4ecb9ffa9" />
+              <option value="70eb9302-3033-4165-aa6d-d559297f2c13" />
+              <option value="769d97ae-9dd6-40da-96fc-2f96bc243814" />
+              <option value="94990630-818c-468a-8d53-6b1180e78806" />
+              <option value="96cd7685-dd87-4a37-8c8a-20c9da23355a" />
+              <option value="b708b61f-cca4-440d-ae3b-58ccce0bd8fe" />
+              <option value="c6eeeb1e-9b5b-41f0-8151-6adec20ec56d" />
+              <option value="cba7cac9-bfcf-4bf4-92c4-712149804ab4" />
+            </set>
+          </value>
+        </entry>
         <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94">
           <value>
             <set>
@@ -128,6 +181,34 @@
               <option value="0edaa6df-14af-422f-a577-425d85a7d324" />
               <option value="2ae99111-9b09-4570-9ab8-2e11682d9ab2" />
               <option value="8cf8cbcf-5285-4edf-801c-6f20488d0bd9" />
+            </set>
+          </value>
+        </entry>
+        <entry key="cb34b1c2-c715-4692-9308-5bb52d3a7d2b">
+          <value>
+            <set>
+              <option value="073a665c-0d0e-458a-ad73-cc81bf98319d" />
+              <option value="0a0bf2d0-fa0c-4840-ad35-f771e1311fc2" />
+              <option value="4520f416-ffeb-477c-ae7f-fa3a47ac4119" />
+              <option value="4d540fe6-bd6b-415b-aa10-e39b715ee4b4" />
+              <option value="500f95ee-cb49-4111-8cc7-b725b169c7a3" />
+              <option value="a120c147-f8d5-4525-8885-d61dfc35e804" />
+              <option value="c007366d-587e-4ef7-b801-4ed425d477c9" />
+              <option value="f601968e-b5a2-4342-ba7a-f20c954ee9c7" />
+            </set>
+          </value>
+        </entry>
+        <entry key="cbf32b16-4da4-4107-9dc1-f7ca6a4a6edd">
+          <value>
+            <set>
+              <option value="05cc37e1-f211-4d7f-b819-e2508352df3d" />
+              <option value="32d3aaae-9c31-412b-a48d-b3ce6fe944ac" />
+              <option value="9298e8f1-8944-4928-81c7-7194f515b7c5" />
+              <option value="c3336d3a-a501-4333-a7e5-11c39b9d1e38" />
+              <option value="c9e46eb0-1899-4c6f-8eb0-c1933fb2b73e" />
+              <option value="d6b4b497-8fa1-4fa0-b33e-5d8ad46db99c" />
+              <option value="d81db273-d75e-4b36-96f7-82b5c7c1f047" />
+              <option value="e6aa7a72-1ef7-4ea8-a729-279f2c452f4c" />
             </set>
           </value>
         </entry>
@@ -166,13 +247,28 @@
       <entry key="0c1f6d6d-6d66-488a-9695-c31f0d212c1a" />
       <entry key="0d3be764-df1d-4b7d-8706-34733d98d88f" />
       <entry key="0f631d98-a520-4147-a7f2-ca6098b4ad12" />
+      <entry key="1bbeb840-1677-48b1-ad03-3b8fce94f91d" />
+      <entry key="1fddcc36-0229-4978-9bad-bc90d714a2ff">
+        <set>
+          <option value="file://$PROJECT_DIR$/app/src/main/java/com/example/myapplication/ui/home/BannerCarousel.kt" />
+        </set>
+      </entry>
       <entry key="2b1e399e-09d3-419a-95e2-7ffdbee63a4f" />
       <entry key="53b32707-8d62-424a-98e4-b9d7e1b576d2" />
       <entry key="563592d0-18a4-4c40-856c-e4a394c397df" />
       <entry key="5f226e9d-862d-4b41-808e-15d64737dcc0" />
+      <entry key="72a1a331-53e2-4178-956b-efb698bc5289">
+        <set>
+          <option value="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
+          <option value="file://$PROJECT_DIR$/app/src/main/res/xml/network_security_config.xml" />
+        </set>
+      </entry>
+      <entry key="8cbc0884-3348-4a73-a1e4-6c734f78e6ad" />
       <entry key="90e18693-69fb-4e04-a3f2-b12ae1cb9d94" />
       <entry key="a9bbb488-bdf5-4f74-855b-95cf13872d4c" />
       <entry key="afd2d191-9400-4aae-8ed2-7883f7073ade" />
+      <entry key="cb34b1c2-c715-4692-9308-5bb52d3a7d2b" />
+      <entry key="cbf32b16-4da4-4107-9dc1-f7ca6a4a6edd" />
       <entry key="f969b42f-d222-42dd-a76f-a59de10361f1" />
       <entry key="f9f39a16-9c35-44fb-997f-5e2cc8854699" />
     </pendingWorkingSetItems>

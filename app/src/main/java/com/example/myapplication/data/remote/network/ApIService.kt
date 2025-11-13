@@ -4,14 +4,15 @@ import com.example.myapplication.data.remote.dto.request.LoginRequest
 import com.example.myapplication.data.remote.dto.response.AttendanceResponse
 import com.example.myapplication.data.remote.dto.response.BannerResponse
 import com.example.myapplication.data.remote.dto.response.LoginResponse
+import com.google.gson.JsonElement
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body
-import retrofit2.http.POST
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface ApiService {
@@ -45,4 +46,9 @@ interface ApiService {
         @Query("valid") valid: Int? = null
     ): Response<BannerResponse>
 
+    // Endpoint para obtener rutas del día (devuelve Json flexible)
+    @GET("technicians/rutas-dia")
+    suspend fun getRutasDia(
+        @Query("emp_code") empCode: String
+    ): Response<JsonElement>
 }

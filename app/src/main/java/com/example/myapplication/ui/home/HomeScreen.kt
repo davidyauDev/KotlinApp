@@ -128,9 +128,16 @@ fun HomeScreen(
     var showLocationErrorDialog by remember { mutableStateOf(false) }
     var locationErrorMessage by remember { mutableStateOf("") }
 
+    // Estados para el menú hamburguesa
+    var selectedDrawerItem by remember { mutableStateOf("Home") }
+
     LaunchedEffect(Unit) {
         currentDate.value = SimpleDateFormat("EEEE dd, MMM yyyy", Locale("es")).format(Date())
     }
+
+    // Drawer state para el menú hamburguesa (navegación entre screens)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerCoroutineScope = rememberCoroutineScope()
 
     fun openLocationSettings(ctx: Context) {
         try {
@@ -389,171 +396,210 @@ fun HomeScreen(
     }
 
     // 🧱 UI principal
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
-        Box(modifier = modifier.fillMaxSize().padding(paddingValues)) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                BlueHeaderWithName(
-                    userName = userName,
-                    currentDate = currentDate.value,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .zIndex(1f)
-                )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Spacer(modifier = Modifier.height(12.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+                    TextButton(onClick = {
+                        selectedDrawerItem = "Home"
+                        drawerCoroutineScope.launch { drawerState.close() }
+                    }) { Text("Inicio") }
+                    HorizontalDivider()
 
-                if (!isLocationEnabled(context)) {
-                    Box(
+                    TextButton(onClick = {
+                        selectedDrawerItem = "Profile"
+                        drawerCoroutineScope.launch { drawerState.close(); snackbarHostState.showSnackbar("Ir a Perfil (simulado)") }
+                    }) { Text("Perfil") }
+                    HorizontalDivider()
+
+                    TextButton(onClick = {
+                        selectedDrawerItem = "Routes"
+                        drawerCoroutineScope.launch {
+                            drawerState.close()
+                            // Navegar a la pantalla de Rutas
+                            navController.navigate("routes")
+                        }
+                    }) { Text("Rutas del día") }
+                    HorizontalDivider()
+
+                    TextButton(onClick = {
+                        selectedDrawerItem = "Settings"
+                        drawerCoroutineScope.launch { drawerState.close(); snackbarHostState.showSnackbar("Abrir Ajustes (simulado)") }
+                    }) { Text("Ajustes") }
+                }
+            }
+        }
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        ) { paddingValues ->
+            Box(modifier = modifier.fillMaxSize().padding(paddingValues)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    BlueHeaderWithName(
+                        userName = userName,
+                        currentDate = currentDate.value,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f))
-                            .padding(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            .height(70.dp)
+                            .zIndex(1f),
+                        onMenuClick = { drawerCoroutineScope.launch { drawerState.open() } }
+                    )
+
+                    if (!isLocationEnabled(context)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f))
+                                .padding(8.dp)
                         ) {
-                            Text("Ubicación desactivada. Actívala para registrar asistencia.", modifier = Modifier.weight(1f))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            TextButton(onClick = { openLocationSettings(context) }) { Text("Activar ubicación") }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Ubicación desactivada. Actívala para registrar asistencia.", modifier = Modifier.weight(1f))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                TextButton(onClick = { openLocationSettings(context) }) { Text("Activar ubicación") }
+                            }
+                        }
+                    }
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        RoundedTopContainer {
+                            BannerCarousel()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LastMarkText(viewModel = attendanceViewModel)
+                            Spacer(modifier = Modifier.height(24.dp))
+                            EntryExitButtons(
+                                onEntry = { startAttendanceFlow(AttendanceType.ENTRADA) },
+                                onExit = { startAttendanceFlow(AttendanceType.SALIDA) },
+                                onLogout = {
+                                    Toast.makeText(context, "Sesión cerrada correctamente", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("login") { popUpTo("home") { inclusive = true } }
+                                    userViewModel.clearUser()
+                                },
+                                onViewRoutes = { navController.navigate("routes") },
+                                isBusy = (isCheckingPermissions || isLoadingLocation || isNavigatingToCamera),
+                                activeType = currentAttendanceType
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxSize()) {
-                    RoundedTopContainer {
-                        BannerCarousel()
-                        Spacer(modifier = Modifier.height(16.dp))
-                        LastMarkText(viewModel = attendanceViewModel)
-                        Spacer(modifier = Modifier.height(24.dp))
-                        EntryExitButtons(
-                            onEntry = { startAttendanceFlow(AttendanceType.ENTRADA) },
-                            onExit = { startAttendanceFlow(AttendanceType.SALIDA) },
-                            onLogout = {
-                                Toast.makeText(context, "Sesión cerrada correctamente", Toast.LENGTH_SHORT).show()
-                                navController.navigate("login") { popUpTo("home") { inclusive = true } }
-                                userViewModel.clearUser()
-                            },
-                            isBusy = (isCheckingPermissions || isLoadingLocation || isNavigatingToCamera),
-                            activeType = currentAttendanceType
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
+                if (isLoadingLocation) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(2f)
+                            .background(Color.Black.copy(alpha = 0.4f))
+                            .pointerInput(Unit) {},
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = Color.White)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("Obteniendo ubicación...", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
-            }
 
-            if (isLoadingLocation) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(2f)
-                        .background(Color.Black.copy(alpha = 0.4f))
-                        .pointerInput(Unit) {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.White)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("Obteniendo ubicación...", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                    }
+                // Diálogos comunes
+                if (showRationaleDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showRationaleDialog = false; isCheckingPermissions = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showRationaleDialog = false
+                                val perms = mutableListOf<String>()
+                                if (!hasCameraPermission(context)) perms.add(android.Manifest.permission.CAMERA)
+                                if (!hasLocationPermission(context)) {
+                                    perms.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                    perms.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                                }
+                                if (perms.isNotEmpty()) permissionLauncher.launch(perms.toTypedArray())
+                            }) { Text("Continuar") }
+                        },
+                        dismissButton = { TextButton(onClick = { showRationaleDialog = false; isCheckingPermissions = false }) { Text("Cancelar") } },
+                        title = { Text("Permisos requeridos") },
+                        text = { Text(rationaleMessage) }
+                    )
                 }
-            }
 
-            // Diálogos comunes
-            if (showRationaleDialog) {
-                AlertDialog(
-                    onDismissRequest = { showRationaleDialog = false; isCheckingPermissions = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showRationaleDialog = false
-                            val perms = mutableListOf<String>()
-                            if (!hasCameraPermission(context)) perms.add(android.Manifest.permission.CAMERA)
-                            if (!hasLocationPermission(context)) {
-                                perms.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                                perms.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                            }
-                            if (perms.isNotEmpty()) permissionLauncher.launch(perms.toTypedArray())
-                        }) { Text("Continuar") }
-                    },
-                    dismissButton = { TextButton(onClick = { showRationaleDialog = false; isCheckingPermissions = false }) { Text("Cancelar") } },
-                    title = { Text("Permisos requeridos") },
-                    text = { Text(rationaleMessage) }
-                )
-            }
+                if (showAppSettingsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAppSettingsDialog = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showAppSettingsDialog = false
+                                isCheckingPermissions = false
+                                openAppSettings(context)
+                            }) { Text("Abrir Ajustes") }
+                        },
+                        dismissButton = { TextButton(onClick = { showAppSettingsDialog = false }) { Text("Cerrar") } },
+                        title = { Text("Permisos bloqueados") },
+                        text = { Text(rationaleMessage) }
+                    )
+                }
 
-            if (showAppSettingsDialog) {
-                AlertDialog(
-                    onDismissRequest = { showAppSettingsDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showAppSettingsDialog = false
-                            isCheckingPermissions = false
-                            openAppSettings(context)
-                        }) { Text("Abrir Ajustes") }
-                    },
-                    dismissButton = { TextButton(onClick = { showAppSettingsDialog = false }) { Text("Cerrar") } },
-                    title = { Text("Permisos bloqueados") },
-                    text = { Text(rationaleMessage) }
-                )
-            }
+                if (showEnableLocationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showEnableLocationDialog = false; isCheckingPermissions = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showEnableLocationDialog = false
+                                isCheckingPermissions = false
+                                openLocationSettings(context)
+                            }) { Text("Abrir ajustes de ubicación") }
+                        },
+                        dismissButton = { TextButton(onClick = { showEnableLocationDialog = false }) { Text("Cancelar") } },
+                        title = { Text("Ubicación desactivada") },
+                        text = { Text("La ubicación (GPS) está desactivada. Actívala para que la app pueda obtener tu posición al registrar la asistencia.") }
+                    )
+                }
 
-            if (showEnableLocationDialog) {
-                AlertDialog(
-                    onDismissRequest = { showEnableLocationDialog = false; isCheckingPermissions = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showEnableLocationDialog = false
-                            isCheckingPermissions = false
-                            openLocationSettings(context)
-                        }) { Text("Abrir ajustes de ubicación") }
-                    },
-                    dismissButton = { TextButton(onClick = { showEnableLocationDialog = false }) { Text("Cancelar") } },
-                    title = { Text("Ubicación desactivada") },
-                    text = { Text("La ubicación (GPS) está desactivada. Actívala para que la app pueda obtener tu posición al registrar la asistencia.") }
-                )
-            }
-
-            if (showMockLocationDialog) {
-                AlertDialog(
-                    onDismissRequest = { showMockLocationDialog = false; isCheckingPermissions = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showMockLocationDialog = false
-                            isCheckingPermissions = false
-                            if (!mockLocationAppName.isNullOrEmpty()) {
-                                try {
-                                    val pkg = mockLocationAppName!!
-                                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data = Uri.fromParts("package", pkg, null)
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                if (showMockLocationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showMockLocationDialog = false; isCheckingPermissions = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showMockLocationDialog = false
+                                isCheckingPermissions = false
+                                if (!mockLocationAppName.isNullOrEmpty()) {
+                                    try {
+                                        val pkg = mockLocationAppName!!
+                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data = Uri.fromParts("package", pkg, null)
+                                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (_: Exception) {
+                                        openAppSettings(context)
                                     }
-                                    context.startActivity(intent)
-                                } catch (_: Exception) {
+                                } else {
                                     openAppSettings(context)
                                 }
-                            } else {
-                                openAppSettings(context)
-                            }
-                        }) { Text("Abrir ajustes") }
-                    },
-                    dismissButton = { TextButton(onClick = { showMockLocationDialog = false; isCheckingPermissions = false }) { Text("Cancelar") } },
-                    title = { Text("Ubicación posiblemente falsa") },
-                    text = { Text(if (mockLocationAppName != null) "Se detectó que la ubicación podría ser falsificada por ${mockLocationAppName}. Desactiva o desinstala esa aplicación y vuelve a intentarlo." else "Se detectó que la ubicación podría ser falsificada. Desactiva apps de ubicación falsa (mock) y vuelve a intentarlo.") }
-                )
-            }
+                            }) { Text("Abrir ajustes") }
+                        },
+                        dismissButton = { TextButton(onClick = { showMockLocationDialog = false; isCheckingPermissions = false }) { Text("Cancelar") } },
+                        title = { Text("Ubicación posiblemente falsa") },
+                        text = { Text(if (mockLocationAppName != null) "Se detectó que la ubicación podría ser falsificada por ${mockLocationAppName}. Desactiva o desinstala esa aplicación y vuelve a intentarlo." else "Se detectó que la ubicación podría ser falsificada. Desactiva apps de ubicación falsa (mock) y vuelve a intentarlo.") }
+                    )
+                }
 
-            // Diálogo de error de ubicación (asegura visibilidad)
-            if (showLocationErrorDialog) {
-                AlertDialog(
-                    onDismissRequest = { showLocationErrorDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = { showLocationErrorDialog = false }) { Text("Aceptar") }
-                    },
-                    title = { Text("Error de ubicación") },
-                    text = { Text(locationErrorMessage) }
-                )
+                // Diálogo de error de ubicación (asegura visibilidad)
+                if (showLocationErrorDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showLocationErrorDialog = false },
+                        confirmButton = {
+                            TextButton(onClick = { showLocationErrorDialog = false }) { Text("Aceptar") }
+                        },
+                        title = { Text("Error de ubicación") },
+                        text = { Text(locationErrorMessage) }
+                    )
+                }
             }
         }
     }

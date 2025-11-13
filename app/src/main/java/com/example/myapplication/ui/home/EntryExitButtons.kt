@@ -15,11 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.local.entity.AttendanceType
 
+@Suppress("DEPRECATION")
 @Composable
 fun EntryExitButtons(
     onEntry: () -> Unit,
     onExit: () -> Unit,
     onLogout: () -> Unit,
+    onViewRoutes: () -> Unit = {},
     isBusy: Boolean = false,
     activeType: AttendanceType = AttendanceType.ENTRADA
 ) {
@@ -101,6 +103,19 @@ fun EntryExitButtons(
 
         Spacer(modifier = Modifier.height(28.dp))
 
+        // Nuevo: botón para ver rutas (abre el modal de Rutas del día)
+        OutlinedButton(
+            onClick = onViewRoutes,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            enabled = !isBusy
+        ) {
+            Text(text = "Ver rutas")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         Button(
             onClick = onLogout,
             colors = ButtonDefaults.buttonColors(
@@ -113,7 +128,7 @@ fun EntryExitButtons(
             enabled = !isBusy
         ) {
             Icon(
-                imageVector = Icons.Default.ExitToApp,
+                imageVector = Icons.Filled.ExitToApp,
                 contentDescription = "Cerrar sesión",
                 tint = Color.White
             )
